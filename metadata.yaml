@@ -1,5 +1,5 @@
 homepage: "https://rudderstack.com"
 documentation: "https://github.com/rudderlabs/rudderstack-gtm-template"
 versions:
-  - sha: 1d4d79b18a2384e967659560add8e3775fa68080
+  - sha: fd0093fffb7bfd86b87143849b5c65a6b18951e4
     changeNotes: Initial release.

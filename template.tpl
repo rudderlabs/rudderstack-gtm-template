@@ -12,7 +12,6 @@ ___INFO___
   "type": "TAG",
   "id": "cvt_temp_public_id",
   "version": 1,
-  "categories": [ "ANALYTICS", "TAG_MANAGEMENT" ],
   "securityGroups": [],
   "displayName": "RudderStack Template",
   "brand": {

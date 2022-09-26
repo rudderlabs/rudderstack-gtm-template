@@ -49,6 +49,10 @@ ___TEMPLATE_PARAMETERS___
       {
         "value": "identify",
         "displayValue": "identify"
+      },
+      {
+        "value": "group",
+        "displayValue": "group"
       }
     ],
     "simpleValueType": true,
@@ -72,7 +76,7 @@ ___TEMPLATE_PARAMETERS___
     ],
     "simpleValueType": true,
     "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call\u0027s event name. The Object and Action will also be included as seperate properties in the track call.",
-    "defaultValue": true,
+    "defaultValue": false,
     "enablingConditions": [
       {
         "paramName": "call",
@@ -451,6 +455,6 @@ scenarios:
 
 ___NOTES___
 
-Created on 05/09/2022, 18:31:50
+Created on 26/09/2022, 20:50:29
 
 

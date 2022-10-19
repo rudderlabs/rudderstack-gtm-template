@@ -86,15 +86,13 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "SELECT",
+    "type": "TEXT",
     "name": "userId",
     "displayName": "User id",
-    "macrosInSelect": true,
-    "selectItems": [],
     "simpleValueType": true,
     "enablingConditions": [
       {
-        "paramName": "spec",
+        "paramName": "call",
         "paramValue": "identify",
         "type": "EQUALS"
       }
@@ -455,6 +453,6 @@ scenarios:
 
 ___NOTES___
 
-Created on 26/09/2022, 20:50:29
+Created on 19/10/2022, 22:18:00
 
 

@@ -716,7 +716,7 @@ const GLOBAL_NAME = 'rudderanalytics';
 // before Call = load can be released to the Gallery. Everything else in this
 // template works without it. To point at a different artifact, change this one
 // constant and the matching inject_script entry in ___WEB_PERMISSIONS___.
-const LOADER_URL = 'https://cdn.rudderlabs.com/v3/loader.min.js';
+const LOADER_URL = 'https://cdn.rudderlabs.com/js_sdk_loading_snippet/latest/loader.min.js';
 
 const LOADER_CACHE_TOKEN = 'rsa-loader';
 const LOG_PREFIX = 'RudderStack GTM template: ';

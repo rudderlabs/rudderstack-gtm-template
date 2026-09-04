@@ -13,7 +13,7 @@ permissions:
 jobs:
   test:
     name: Template harness
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -39,7 +39,7 @@ jobs:
 
   metadata:
     name: Gallery metadata
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -54,30 +54,28 @@ jobs:
 
       - name: Every published version must point at a real commit
         run: |
-          python3 - <<'PY'
-          import re
-          import subprocess
-          import sys
+          set -euo pipefail
 
-          with open('metadata.yaml') as handle:
-              shas = re.findall(r'^\s*-\s*sha:\s*([0-9a-f]{40})\s*$', handle.read(), re.M)
+          shas=$(grep -oE '^[[:space:]]*-[[:space:]]*sha:[[:space:]]*[0-9a-f]{40}$' metadata.yaml | grep -oE '[0-9a-f]{40}' || true)
 
-          if not shas:
-              sys.exit('metadata.yaml lists no versions')
+          if [ -z "${shas}" ]; then
+            echo "metadata.yaml lists no versions" >&2
+            exit 1
+          fi
 
-          failed = False
-          for sha in shas:
-              result = subprocess.run(
-                  ['git', 'cat-file', '-e', '%s^{commit}' % sha],
-                  capture_output=True,
-              )
-              status = 'ok' if result.returncode == 0 else 'MISSING'
-              if result.returncode != 0:
-                  failed = True
-              print('%s %s' % (status, sha))
+          failed=0
+          for sha in ${shas}; do
+            if git cat-file -e "${sha}^{commit}" 2>/dev/null; then
+              echo "ok ${sha}"
+            else
+              echo "MISSING ${sha}"
+              failed=1
+            fi
+          done
 
-          if failed:
-              sys.exit('metadata.yaml references commits that do not exist')
+          if [ "${failed}" -ne 0 ]; then
+            echo "metadata.yaml references commits that do not exist" >&2
+            exit 1
+          fi
 
-          print('%d version(s) verified' % len(shas))
-          PY
+          echo "$(printf '%s\n' "${shas}" | wc -l | tr -d ' ') version(s) verified"

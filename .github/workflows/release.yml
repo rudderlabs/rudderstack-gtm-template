@@ -25,7 +25,7 @@ permissions:
 jobs:
   release:
     name: Release please
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -64,35 +64,34 @@ jobs:
           # exactly what this release ships, which is what Google reads.
           RELEASE_SHA: ${{ github.sha }}
         run: |
-          python3 - <<'PY'
-          import json
-          import os
+          set -euo pipefail
 
-          sha = os.environ['RELEASE_SHA']
-          with open('.release-please-manifest.json') as handle:
-              version = json.load(handle)['.']
+          version=$(sed -n 's/.*"\.":[[:space:]]*"\([^"]*\)".*/\1/p' .release-please-manifest.json)
+          if [ -z "${version}" ]; then
+            echo "could not read the release version from .release-please-manifest.json" >&2
+            exit 1
+          fi
 
-          note = 'Release %s' % version
-          with open('metadata.yaml') as handle:
-              lines = handle.read().splitlines()
+          # release-please rewrites this branch on every push to main, so a
+          # pending entry for this version is replaced rather than stacked.
+          awk -v sha="${RELEASE_SHA}" -v note="Release ${version}" '
+            { lines[NR] = $0 }
+            END {
+              for (i = 1; i <= NR; i++) {
+                print lines[i]
+                if (lines[i] == "versions:") {
+                  print "  - sha: " sha
+                  print "    changeNotes: " note
+                  if (i + 2 <= NR && lines[i + 2] == "    changeNotes: " note) {
+                    i += 2
+                  }
+                }
+              }
+            }
+          ' metadata.yaml > metadata.yaml.tmp
 
-          index = next(i for i, line in enumerate(lines) if line.strip() == 'versions:')
-          entry = ['  - sha: %s' % sha, '    changeNotes: %s' % note]
-
-          # release-please rewrites this branch on every push to main, so the
-          # pending entry is replaced rather than stacked.
-          if len(lines) > index + 2 and lines[index + 2].strip() == 'changeNotes: %s' % note:
-              lines[index + 1:index + 3] = entry
-              action = 'updated'
-          else:
-              lines[index + 1:index + 1] = entry
-              action = 'added'
-
-          with open('metadata.yaml', 'w') as handle:
-              handle.write('\n'.join(lines) + '\n')
-
-          print('%s %s for %s' % (action, sha, version))
-          PY
+          mv metadata.yaml.tmp metadata.yaml
+          echo "recorded ${RELEASE_SHA} for ${version}"
 
       - name: Commit to the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}

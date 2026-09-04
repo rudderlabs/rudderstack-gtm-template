@@ -914,12 +914,16 @@ function loadSdk() {
     directCall('load', args);
   }
 
-  if (initialState !== 'absent') {
-    // Something else already put the global there -- a loading snippet, or an
-    // earlier load tag -- so it owns fetching the SDK. Injecting again would
-    // duplicate the request and trip the loader's own double-include guard.
-    // The load call above is still buffered or dispatched, so the tag has done
-    // its job.
+  if (initialState === 'buffer' || initialState === 'loaded') {
+    // Something else already put a real SDK global there -- a loading snippet,
+    // or an earlier load tag -- so it owns fetching the SDK. Injecting again
+    // would duplicate the request and trip the loader's own double-include
+    // guard. The load call above is still buffered or dispatched, so the tag
+    // has done its job.
+    //
+    // 'invalid' is deliberately not in this list. A scalar means nothing on the
+    // page owns the name, so the buffer written above has no other owner to
+    // drain it and this tag has to inject the loader itself.
     log(
       LOG_PREFIX +
         'the SDK is already present on this page, so the loader was not injected again.'

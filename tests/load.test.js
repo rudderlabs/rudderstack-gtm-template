@@ -103,6 +103,34 @@ describe('load on a page where the snippet already ran', () => {
   });
 });
 
+describe('load on a page whose global is not the SDK', () => {
+  // A scalar means nothing on the page owns the name, so the load tag repairs
+  // it -- and then has to inject the loader itself. Treating the repair like an
+  // existing SDK and skipping the injection would leave the buffered load call
+  // with nothing to drain it.
+  const scalarWindow = () => ({ rudderanalytics: 'taken-by-something-else' });
+
+  test('repairs the global and buffers the load call', () => {
+    const result = runTemplate(LOAD_DATA, { window: scalarWindow() });
+    expect(result.setInWindow).toEqual([
+      { key: 'rudderanalytics', value: [], overrideExisting: true, result: true },
+    ]);
+    expect(result.callInWindow).toEqual([
+      {
+        path: 'rudderanalytics.push',
+        args: [['load', 'write-key-1', 'https://example.dataplane.rudderstack.com']],
+      },
+    ]);
+  });
+
+  test('injects the loader, since nothing else is fetching the SDK', () => {
+    const result = runTemplate(LOAD_DATA, { window: scalarWindow() });
+    expect(result.injectScript).toHaveLength(1);
+    expect(result.gtmOnSuccess).toHaveBeenCalled();
+    expect(result.gtmOnFailure).not.toHaveBeenCalled();
+  });
+});
+
 describe('load on a page where the SDK is already loaded', () => {
   test('calls load directly rather than pushing onto a buffer that is gone', () => {
     const result = runTemplate(LOAD_DATA, { window: loadedSdkWindow() });

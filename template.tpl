@@ -11,6 +11,10 @@ ___INFO___
 {
   "type": "TAG",
   "id": "cvt_temp_public_id",
+  "categories": [
+    "ANALYTICS",
+    "TAG_MANAGEMENT"
+  ],
   "version": 1,
   "securityGroups": [],
   "displayName": "RudderStack",
@@ -30,10 +34,6 @@ ___TEMPLATE_PARAMETERS___
 
 [
   {
-    "categories": [
-      "ANALYTICS",
-      "TAG_MANAGEMENT"
-    ],
     "type": "SELECT",
     "name": "call",
     "displayName": "Call",
@@ -97,7 +97,7 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "help": "Select which RudderStack API call you want to make. Use <code>load</code> on an Initialization - All Pages trigger to load the SDK; every other call needs the SDK to be present on the page already."
+    "help": "Select which RudderStack API call you want to make. Use <code>load</code> on an Initialization - All Pages trigger to load the SDK; every other call needs the SDK to be present on the page already. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/\" target=\"_blank\" rel=\"noopener\">JavaScript SDK APIs</a>"
   },
   {
     "type": "SELECT",
@@ -115,7 +115,7 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call's event name. The Object and Action will also be included as seperate properties in the track call.",
+    "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call's event name. The Object and Action will also be included as seperate properties in the track call. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
     "defaultValue": false,
     "enablingConditions": [
       {
@@ -130,7 +130,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "event",
     "displayName": "Event",
     "simpleValueType": true,
-    "help": "Name of the track event.",
+    "help": "Name of the track event. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -149,7 +149,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "object",
     "displayName": "Object",
     "simpleValueType": true,
-    "help": "First half of the Object-Action event name.",
+    "help": "First half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -168,7 +168,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "action",
     "displayName": "Action",
     "simpleValueType": true,
-    "help": "Second half of the Object-Action event name.",
+    "help": "Second half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -187,7 +187,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "category",
     "displayName": "Category",
     "simpleValueType": true,
-    "help": "Optional page category. Only used when Name is also set: the SDK has no overload that takes a category on its own, so a category without a name is sent as a page property instead.",
+    "help": "Optional page category. Only used when Name is also set: the SDK has no overload that takes a category on its own, so a category without a name is sent as a page property instead. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#page\" target=\"_blank\" rel=\"noopener\">page docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -201,7 +201,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "name",
     "displayName": "Name",
     "simpleValueType": true,
-    "help": "Optional page name.",
+    "help": "Optional page name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#page\" target=\"_blank\" rel=\"noopener\">page docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -215,7 +215,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "userId",
     "displayName": "User id",
     "simpleValueType": true,
-    "help": "Optional. Leave empty to update the traits of the current user without changing their identity.",
+    "help": "Optional. Leave empty to update the traits of the current user without changing their identity. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#identify\" target=\"_blank\" rel=\"noopener\">identify docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -229,7 +229,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "groupId",
     "displayName": "Group id",
     "simpleValueType": true,
-    "help": "Optional. Leave empty to update the traits of the current group without changing it.",
+    "help": "Optional. Leave empty to update the traits of the current group without changing it. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#group\" target=\"_blank\" rel=\"noopener\">group docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -243,7 +243,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "to",
     "displayName": "To",
     "simpleValueType": true,
-    "help": "The new identifier to alias to. Required.",
+    "help": "The new identifier to alias to. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#alias\" target=\"_blank\" rel=\"noopener\">alias docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -257,7 +257,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "from",
     "displayName": "From",
     "simpleValueType": true,
-    "help": "Optional previous identifier. Defaults to the current user id.",
+    "help": "Optional previous identifier. Defaults to the current user id. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#alias\" target=\"_blank\" rel=\"noopener\">alias docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -271,7 +271,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "anonymousId",
     "displayName": "Anonymous id",
     "simpleValueType": true,
-    "help": "The anonymous id to set. Required.",
+    "help": "The anonymous id to set. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#anonymous-user-id\" target=\"_blank\" rel=\"noopener\">anonymous user ID docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -285,7 +285,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sessionId",
     "displayName": "Session id",
     "simpleValueType": true,
-    "help": "Optional numeric session id. Leave empty to let the SDK generate one. RudderStack recommends a 10-digit or longer timestamp.",
+    "help": "Optional numeric session id. Leave empty to let the SDK generate one. RudderStack recommends a 10-digit or longer timestamp. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/session-tracking/manual-session-tracking/\" target=\"_blank\" rel=\"noopener\">manual session tracking docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -299,7 +299,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "authToken",
     "displayName": "Auth token",
     "simpleValueType": true,
-    "help": "The authorisation token to attach to subsequent requests. Required.",
+    "help": "The authorisation token to attach to subsequent requests. Required. This API is not covered by the public JavaScript SDK documentation yet.",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -448,7 +448,7 @@ ___TEMPLATE_PARAMETERS___
     "macrosInSelect": true,
     "selectItems": [],
     "simpleValueType": true,
-    "help": "Select a JSON object variable to send as the call's options argument: per-event <code>integrations</code> filtering, <code>anonymousId</code>, <code>originalTimestamp</code> and context overrides.",
+    "help": "Select a JSON object variable to send as the call's options argument: per-event <code>integrations</code> filtering, <code>anonymousId</code>, <code>originalTimestamp</code> and context overrides. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/\" target=\"_blank\" rel=\"noopener\">JavaScript SDK APIs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -541,7 +541,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "User id",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -616,7 +616,7 @@ ___TEMPLATE_PARAMETERS___
     "macrosInSelect": true,
     "selectItems": [],
     "simpleValueType": true,
-    "help": "Select a JSON object variable to merge into the context of every subsequent event. Required.",
+    "help": "Select a JSON object variable to merge into the context of every subsequent event. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#custom-context\" target=\"_blank\" rel=\"noopener\">custom context docs</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -632,7 +632,7 @@ ___TEMPLATE_PARAMETERS___
     "macrosInSelect": true,
     "selectItems": [],
     "simpleValueType": true,
-    "help": "Optional. Select a JSON object variable holding the SDK's <code>ConsentOptions</code>, for example <code>{\"consentManagement\": {\"enabled\": true}}</code>.",
+    "help": "Optional. Select a JSON object variable holding the SDK's <code>ConsentOptions</code>, for example <code>{\"consentManagement\": {\"enabled\": true}}</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#consent\" target=\"_blank\" rel=\"noopener\">consent docs</a> and <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/consent-management/\" target=\"_blank\" rel=\"noopener\">consent management</a>",
     "enablingConditions": [
       {
         "paramName": "call",
@@ -659,14 +659,14 @@ ___TEMPLATE_PARAMETERS___
         "name": "writeKey",
         "displayName": "Write key",
         "simpleValueType": true,
-        "help": "The source write key from the RudderStack dashboard. Required."
+        "help": "The source write key from the RudderStack dashboard. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load docs</a>"
       },
       {
         "type": "TEXT",
         "name": "dataPlaneUrl",
         "displayName": "Data plane URL",
         "simpleValueType": true,
-        "help": "The data plane URL from the RudderStack dashboard. Required."
+        "help": "The data plane URL from the RudderStack dashboard. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load docs</a>"
       },
       {
         "type": "SELECT",
@@ -675,7 +675,7 @@ ___TEMPLATE_PARAMETERS___
         "macrosInSelect": true,
         "selectItems": [],
         "simpleValueType": true,
-        "help": "Optional. Select a JSON object variable holding the SDK's <code>LoadOptions</code>."
+        "help": "Optional. Select a JSON object variable holding the SDK's <code>LoadOptions</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load options reference</a>"
       }
     ]
   }
@@ -834,6 +834,10 @@ function bufferCall(method, args) {
  * resolved value against the same allowlist at runtime.
  */
 function directCall(method, args) {
+  // Sandboxed JavaScript cannot spread an array into callInWindow, so each
+  // arity is written out. This is a mechanical fan-out, NOT overload
+  // selection -- the handle* functions above have already decided which
+  // overload to build and placed the values in the right slots.
   const n = args.length;
 
   if (method === 'page') {
@@ -1865,6 +1869,43 @@ ___WEB_PERMISSIONS___
 ___TESTS___
 
 scenarios:
+- name: Page with no fields sends an empty properties object
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'page'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.page', {});
+    assertApi('gtmOnSuccess').wasCalled();
+    assertApi('gtmOnFailure').wasNotCalled();
+- name: Page with a name only uses the name overload
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'page', name: 'Home'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.page', 'Home', {});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Page with a category and a name uses the category overload
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'page', category: 'Docs', name: 'Home'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.page', 'Docs', 'Home', {});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Page with a category but no name sends it as a property
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'page', category: 'Docs'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.page', {category: 'Docs'});
+    assertApi('gtmOnSuccess').wasCalled();
 - name: Track is dispatched directly when the SDK is loaded
   code: |-
     mock('copyFromWindow', {});
@@ -1875,6 +1916,36 @@ scenarios:
     assertApi('callInWindow').wasCalledWith('rudderanalytics.track', 'Order Completed', {});
     assertApi('gtmOnSuccess').wasCalled();
     assertApi('gtmOnFailure').wasNotCalled();
+- name: Track builds the event name from Object and Action
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'track', useObjectAction: true, object: 'Order', action: 'Completed'});
+
+    assertApi('callInWindow').wasCalledWith(
+      'rudderanalytics.track',
+      'Order Completed',
+      {category: 'Order', object: 'Order', action: 'Completed'});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Track without an event name reports failure
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'track'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
+- name: Object-Action without an Action reports failure
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'track', useObjectAction: true, object: 'Order'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
 - name: Identify sends the user id and the traits
   code: |-
     mock('copyFromWindow', {});
@@ -1883,6 +1954,183 @@ scenarios:
     runCode({call: 'identify', userId: 'user-1'});
 
     assertApi('callInWindow').wasCalledWith('rudderanalytics.identify', 'user-1', {});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Identify without a user id sends traits only
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'identify', customProperties: [{key: 'plan', value: 'pro'}]});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.identify', {plan: 'pro'});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Custom properties take precedence over default properties
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({
+      call: 'track',
+      event: 'Order Completed',
+      defaultProperties: {plan: 'free', source: 'web'},
+      customProperties: [{key: 'plan', value: 'pro'}]});
+
+    assertApi('callInWindow').wasCalledWith(
+      'rudderanalytics.track', 'Order Completed', {plan: 'pro', source: 'web'});
+- name: An empty Default properties variable adds no keys
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'track', event: 'Order Completed', defaultProperties: undefined});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.track', 'Order Completed', {});
+- name: A non-object Default properties variable adds no keys
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'track', event: 'Order Completed', defaultProperties: 'gtm.js'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.track', 'Order Completed', {});
+- name: Group sends the group id and the traits
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'group', groupId: 'group-1'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.group', 'group-1', {});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Alias sends To on its own when From is empty
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'alias', to: 'user-2'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.alias', 'user-2');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Alias sends both identifiers when From is set
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'alias', to: 'user-2', from: 'user-1'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.alias', 'user-2', 'user-1');
+- name: Alias without To reports failure
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'alias'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
+- name: Reset sends the SDK default entries when nothing is changed
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({
+      call: 'reset',
+      resetUserId: true,
+      resetUserTraits: true,
+      resetGroupId: true,
+      resetGroupTraits: true,
+      resetSessionInfo: true,
+      resetAuthToken: true,
+      resetAnonymousId: false,
+      resetInitialReferrer: false,
+      resetInitialReferringDomain: false});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.reset', {entries: {
+      userId: true,
+      userTraits: true,
+      groupId: true,
+      groupTraits: true,
+      sessionInfo: true,
+      authToken: true,
+      anonymousId: false,
+      initialReferrer: false,
+      initialReferringDomain: false}});
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Suppress Google Analytics emits the legacy integrations object
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'identify', userId: 'user-1', suppressGa: true});
+
+    assertApi('callInWindow').wasCalledWith(
+      'rudderanalytics.identify',
+      'user-1',
+      {},
+      {integrations: {All: true, 'Google Analytics': false}});
+- name: Start session forwards a numeric session id
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'startSession', sessionId: '1735689600000'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.startSession', 1735689600000);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Start session without an id lets the SDK generate one
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'startSession'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.startSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: A non-numeric session id reports failure
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'startSession', sessionId: 'not-a-number'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
+- name: End session takes no arguments
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'endSession'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.endSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Set anonymous id forwards the value
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'setAnonymousId', anonymousId: 'anon-1'});
+
+    assertApi('callInWindow').wasCalledWith('rudderanalytics.setAnonymousId', 'anon-1');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Set custom context requires an object variable
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'setCustomContext', customContext: 'not-an-object'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
+- name: Consent forwards the consent options
+  code: |-
+    mock('copyFromWindow', {});
+    mock('callInWindow', function() {});
+
+    runCode({call: 'consent', consentOptions: {consentManagement: {enabled: true}}});
+
+    assertApi('callInWindow').wasCalledWith(
+      'rudderanalytics.consent', {consentManagement: {enabled: true}});
     assertApi('gtmOnSuccess').wasCalled();
 - name: A call is buffered while the SDK is still loading
   code: |-
@@ -1909,42 +2157,40 @@ scenarios:
 
     assertApi('gtmOnFailure').wasCalled();
     assertApi('gtmOnSuccess').wasNotCalled();
-- name: Track without an event name reports failure
+- name: Load creates the buffer and injects the loader
   code: |-
-    mock('copyFromWindow', {});
-
-    runCode({call: 'track'});
-
-    assertApi('gtmOnFailure').wasCalled();
-    assertApi('gtmOnSuccess').wasNotCalled();
-- name: An empty Default properties variable injects no junk key
-  code: |-
-    mock('copyFromWindow', {});
+    mock('copyFromWindow', undefined);
     mock('callInWindow', function() {});
-
-    runCode({call: 'track', event: 'Order Completed'});
-
-    assertApi('callInWindow').wasCalledWith('rudderanalytics.track', 'Order Completed', {});
-- name: Custom properties beat default properties
-  code: |-
-    mock('copyFromWindow', {});
-    mock('callInWindow', function() {});
-
-    runCode({
-      call: 'track',
-      event: 'Order Completed',
-      defaultProperties: {tier: 'shared'},
-      customProperties: [{key: 'tier', value: 'tag-specific'}]
+    mock('setInWindow', function() {});
+    mock('injectScript', function(url, onSuccess) {
+      onSuccess();
     });
 
+    runCode({
+      call: 'load',
+      writeKey: 'WRITE_KEY',
+      dataPlaneUrl: 'https://example.dataplane.rudderstack.com'});
+
+    assertApi('setInWindow').wasCalledWith('rudderanalytics', [], false);
     assertApi('callInWindow').wasCalledWith(
-      'rudderanalytics.track', 'Order Completed', {tier: 'tag-specific'});
+      'rudderanalytics.push',
+      ['load', 'WRITE_KEY', 'https://example.dataplane.rudderstack.com']);
+    assertApi('injectScript').wasCalled();
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Load without a write key reports failure
+  code: |-
+    mock('copyFromWindow', undefined);
+    mock('injectScript', function() {});
+
+    runCode({call: 'load', dataPlaneUrl: 'https://example.dataplane.rudderstack.com'});
+
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('injectScript').wasNotCalled();
 
 
 ___NOTES___
 
 Created on 19/10/2022, 22:18:00
-Reworked for RudderStack JavaScript SDK v3 (SDK-5438).
 
 The ___TESTS___ scenarios below are a smoke test for the GTM editor's test
 tab. The source of truth is the Jest harness in tests/, which executes this

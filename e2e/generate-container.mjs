@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Generates a GTM container export that wires up every call the template
-// supports, pointing at the buttons on gtm-template-test-page.html.
+// supports, pointing at the buttons on e2e/test-page.html.
 //
-//   node gtm-container-generator.mjs <WRITE_KEY> <DATA_PLANE_URL> [template.tpl]
+//   npm run e2e:container -- <WRITE_KEY> <DATA_PLANE_URL> [template.tpl]
 //
 // Import the result in GTM: Admin > Import Container > choose a new workspace
 // and "Merge / Rename conflicting". The custom template travels with it, so
@@ -140,7 +140,7 @@ const container = {
     ...base,
     containerVersionId: '0',
     name: 'RudderStack template test',
-    description: 'Every call the RudderStack GTM template supports, wired to gtm-template-test-page.html',
+    description: 'Every call the RudderStack GTM template supports, wired to e2e/test-page.html',
     container: {
       path: `accounts/${ACCOUNT}/containers/${CONTAINER}`,
       ...base,

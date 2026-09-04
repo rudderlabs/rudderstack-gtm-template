@@ -861,7 +861,8 @@ function loadSdk() {
     args.push(data.loadOptions);
   }
 
-  var state = globalState();
+  const initialState = globalState();
+  var state = initialState;
   if (state === 'absent') {
     // overrideExisting stays false so a loading snippet that ran first is
     // never clobbered.
@@ -873,6 +874,20 @@ function loadSdk() {
     bufferCall('load', args);
   } else {
     directCall('load', args);
+  }
+
+  if (initialState !== 'absent') {
+    // Something else already put the global there -- a loading snippet, or an
+    // earlier load tag -- so it owns fetching the SDK. Injecting again would
+    // duplicate the request and trip the loader's own double-include guard.
+    // The load call above is still buffered or dispatched, so the tag has done
+    // its job.
+    log(
+      LOG_PREFIX +
+        'the SDK is already present on this page, so the loader was not injected again.'
+    );
+    data.gtmOnSuccess();
+    return;
   }
 
   // The loader does the feature detection, the method stubs, the globalThis

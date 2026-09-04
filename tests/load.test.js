@@ -77,6 +77,15 @@ describe('load on a page where the snippet already ran', () => {
       ['load', 'write-key-1', 'https://example.dataplane.rudderstack.com'],
     ]);
   });
+
+  // Whatever put the global there is already fetching the SDK. Injecting again
+  // would duplicate the request and trip the loader's double-include guard.
+  test('does not inject the loader a second time', () => {
+    const result = runTemplate(LOAD_DATA, { window: bufferingSdkWindow() });
+    expect(result.injectScript).toHaveLength(0);
+    expect(result.gtmOnSuccess).toHaveBeenCalled();
+    expect(result.gtmOnFailure).not.toHaveBeenCalled();
+  });
 });
 
 describe('load on a page where the SDK is already loaded', () => {
@@ -88,6 +97,12 @@ describe('load on a page where the SDK is already loaded', () => {
         args: ['write-key-1', 'https://example.dataplane.rudderstack.com'],
       },
     ]);
+  });
+
+  test('does not inject the loader for an SDK that is already running', () => {
+    const result = runTemplate(LOAD_DATA, { window: loadedSdkWindow() });
+    expect(result.injectScript).toHaveLength(0);
+    expect(result.gtmOnSuccess).toHaveBeenCalled();
   });
 });
 

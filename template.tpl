@@ -2135,7 +2135,7 @@ scenarios:
       writeKey: 'WRITE_KEY',
       dataPlaneUrl: 'https://example.dataplane.rudderstack.com'});
 
-    assertApi('setInWindow').wasCalledWith('rudderanalytics', [], false);
+    assertApi('setInWindow').wasCalledWith('rudderanalytics', [], true);
     assertApi('callInWindow').wasCalledWith(
       'rudderanalytics.push',
       ['load', 'WRITE_KEY', 'https://example.dataplane.rudderstack.com']);

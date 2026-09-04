@@ -3,7 +3,7 @@
  * a failure no behavioural test would catch.
  */
 
-const { readTemplate } = require('./helpers/tpl');
+const { readTemplate, getSandboxedCode, getTests } = require('./helpers/tpl');
 
 const REQUIRED_SECTIONS = [
   'TERMS_OF_SERVICE',
@@ -48,5 +48,40 @@ describe('template.tpl', () => {
       .filter(entry => /[^\x00-\x7F]/.test(entry.line))
       .map(entry => entry.number);
     expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * The ___TESTS___ scenarios cannot be executed outside the GTM editor, so
+ * nothing else stops them drifting from the code. This pins the one assertion
+ * that has already drifted once: the setInWindow override flag.
+ */
+describe('editor scenarios agree with the code', () => {
+  const setInWindowCalls = source => {
+    const matches = source.match(/setInWindow\(\s*GLOBAL_NAME\s*,\s*([^,]+?)\s*,\s*(\w+)\s*\)/g) || [];
+    return matches.map(call => {
+      const parts = call.match(/setInWindow\(\s*GLOBAL_NAME\s*,\s*([^,]+?)\s*,\s*(\w+)\s*\)/);
+      return `${parts[1]}|${parts[2]}`;
+    });
+  };
+
+  const setInWindowAssertions = source => {
+    const pattern = /assertApi\('setInWindow'\)\.wasCalledWith\('rudderanalytics',\s*([^,]+?)\s*,\s*(\w+)\s*\)/g;
+    const found = [];
+    let match = pattern.exec(source);
+    while (match) {
+      found.push(`${match[1]}|${match[2]}`);
+      match = pattern.exec(source);
+    }
+    return found;
+  };
+
+  it('asserts only setInWindow calls the code actually makes', () => {
+    const calls = setInWindowCalls(getSandboxedCode());
+    const asserted = setInWindowAssertions(getTests());
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(asserted.length).toBeGreaterThan(0);
+    expect(asserted.filter(assertion => !calls.includes(assertion))).toEqual([]);
   });
 });

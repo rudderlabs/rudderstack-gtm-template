@@ -74,6 +74,11 @@ function getWebPermissions(templatePath) {
   return JSON.parse(requireSection(sections, 'WEB_PERMISSIONS'));
 }
 
+function getTests(templatePath) {
+  const { sections } = readTemplate(templatePath);
+  return requireSection(sections, 'TESTS');
+}
+
 function getInfo(templatePath) {
   const { sections } = readTemplate(templatePath);
   return JSON.parse(requireSection(sections, 'INFO'));
@@ -84,6 +89,7 @@ module.exports = {
   readTemplate,
   parseSections,
   getSandboxedCode,
+  getTests,
   getTemplateParameters,
   getWebPermissions,
   getInfo,

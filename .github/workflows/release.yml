@@ -1,0 +1,96 @@
+name: Release
+
+# Merging to main opens or updates a release PR. Merging that release PR cuts a
+# GitHub release and then publishes to the GTM Community Template Gallery by
+# adding the release commit's SHA to metadata.yaml.
+#
+# Publishing to the Gallery is exactly that metadata.yaml entry: Google reads
+# the template.tpl found at each listed SHA. Nothing reaches template users
+# until the entry exists, and even then they are prompted to accept the update
+# rather than being upgraded automatically.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release please
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-to-gallery:
+    name: Publish to the Community Template Gallery
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          # The push below needs the token, so credentials are deliberately
+          # persisted here.
+          persist-credentials: true
+
+      - name: Add the release version to metadata.yaml
+        env:
+          # The commit that merged the release PR. Its template.tpl is exactly
+          # what this release ships, which is what Google reads at this SHA.
+          RELEASE_SHA: ${{ github.sha }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os
+
+          sha = os.environ['RELEASE_SHA']
+          version = os.environ['VERSION']
+
+          with open('metadata.yaml') as handle:
+              lines = handle.read().splitlines()
+
+          if any(sha in line for line in lines):
+              print('metadata.yaml already lists %s, nothing to do' % sha)
+              raise SystemExit(0)
+
+          index = lines.index('versions:')
+          entry = ['  - sha: %s' % sha, '    changeNotes: Release %s' % version]
+          lines[index + 1:index + 1] = entry
+
+          with open('metadata.yaml', 'w') as handle:
+              handle.write('\n'.join(lines) + '\n')
+
+          print('added %s to metadata.yaml' % sha)
+          PY
+
+      - name: Commit and push
+        run: |
+          if git diff --quiet -- metadata.yaml; then
+            echo "metadata.yaml unchanged, nothing to push"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add metadata.yaml
+          git commit -m "chore: publish ${{ needs.release.outputs.tag_name }} to the gallery"
+          git push origin main

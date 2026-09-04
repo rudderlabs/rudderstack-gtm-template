@@ -309,11 +309,9 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "SELECT",
+    "type": "TEXT",
     "name": "defaultProperties",
     "displayName": "Default properties or traits",
-    "macrosInSelect": true,
-    "selectItems": [],
     "simpleValueType": true,
     "help": "Select a JSON object variable to use as default properties or traits on every page, track, identify and group call. Values set in Custom properties or traits below take precedence.",
     "enablingConditions": [
@@ -383,11 +381,9 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "SELECT",
+    "type": "TEXT",
     "name": "eventOptions",
     "displayName": "Options",
-    "macrosInSelect": true,
-    "selectItems": [],
     "simpleValueType": true,
     "help": "Select a JSON object variable to send as the call's options argument: per-event <code>integrations</code> filtering, <code>anonymousId</code>, <code>originalTimestamp</code> and context overrides. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/\" target=\"_blank\" rel=\"noopener\">JavaScript SDK APIs</a>",
     "enablingConditions": [
@@ -533,11 +529,9 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "SELECT",
+    "type": "TEXT",
     "name": "customContext",
     "displayName": "Custom context",
-    "macrosInSelect": true,
-    "selectItems": [],
     "simpleValueType": true,
     "help": "Select a JSON object variable to merge into the context of every subsequent event. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#custom-context\" target=\"_blank\" rel=\"noopener\">custom context docs</a>",
     "enablingConditions": [
@@ -550,11 +544,9 @@ ___TEMPLATE_PARAMETERS___
     "defaultValue": ""
   },
   {
-    "type": "SELECT",
+    "type": "TEXT",
     "name": "consentOptions",
     "displayName": "Consent options",
-    "macrosInSelect": true,
-    "selectItems": [],
     "simpleValueType": true,
     "help": "Optional. Select a JSON object variable holding the SDK's <code>ConsentOptions</code>, for example <code>{\"consentManagement\": {\"enabled\": true}}</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#consent\" target=\"_blank\" rel=\"noopener\">consent docs</a> and <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/consent-management/\" target=\"_blank\" rel=\"noopener\">consent management</a>",
     "enablingConditions": [
@@ -594,11 +586,9 @@ ___TEMPLATE_PARAMETERS___
         "help": "The data plane URL from the RudderStack dashboard. Required. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load docs</a>"
       },
       {
-        "type": "SELECT",
+        "type": "TEXT",
         "name": "loadOptions",
         "displayName": "Load options",
-        "macrosInSelect": true,
-        "selectItems": [],
         "simpleValueType": true,
         "help": "Optional. Select a JSON object variable holding the SDK's <code>LoadOptions</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load options reference</a>",
         "defaultValue": ""

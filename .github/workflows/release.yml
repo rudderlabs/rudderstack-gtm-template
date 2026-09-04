@@ -54,6 +54,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          token: ${{ steps.app-token.outputs.token }}
+          # The gallery commit is created through the API by the signed-commit
+          # step below, so no git credentials need to survive the checkout.
           persist-credentials: false
 
       # release-please rewrites this branch on every push to main, so an entry

@@ -82,7 +82,7 @@ manifest is then the only way tracking gets approved.
 
 > [!WARNING]
 > **Landing in the next release.** The `load` call is implemented but depends on a
-> CDN-hosted loader artifact (`https://cdn.rudderlabs.com/js_sdk_loading_snippet/latest/loader.min.js`) that has not
+> CDN-hosted loader artifact (`https://cdn.rudderlabs.com/js-sdk-loader-scripts/latest/loader-gtm.min.js`) that has not
 > been published yet; it is being built and released from the
 > [rudder-sdk-js](https://github.com/rudderlabs/rudder-sdk-js) monorepo. Until it ships,
 > use [Method 2](#method-2--custom-html-tag).

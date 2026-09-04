@@ -60,16 +60,20 @@ jobs:
       # for the pending release is replaced rather than stacked.
       - name: Add the Gallery entry to the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}
-        uses: mikefarah/yq@e1d5d6eb36b8995bf29e5acb561659824dc47be3 # v4.53.6
         env:
           # The main commit this release PR is based on. Its template.tpl is
           # exactly what this release ships, which is what Google reads.
           SHA: ${{ github.sha }}
-        with:
-          cmd: |
-            NOTE="Release $(yq -r '.["."]' .release-please-manifest.json)" \
-            yq -i '.versions = [{"sha": strenv(SHA), "changeNotes": strenv(NOTE)}]
-                     + (.versions | map(select(.changeNotes != strenv(NOTE))))' metadata.yaml
+        run: |
+          set -euo pipefail
+
+          NOTE="Release $(yq -r '.["."]' .release-please-manifest.json)"
+          export NOTE
+
+          yq -i '.versions = [{"sha": strenv(SHA), "changeNotes": strenv(NOTE)}]
+                   + (.versions | map(select(.changeNotes != strenv(NOTE))))' metadata.yaml
+
+          echo "recorded ${SHA} as ${NOTE}"
 
       - name: Create a verified commit on the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}

@@ -200,6 +200,27 @@ describe('GTM field-model semantics', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('never leaves a boolean dropdown without a default', () => {
+    // A blank default is right for a value dropdown like `call` -- nothing
+    // renders until a choice is made. A boolean is different: there is no
+    // "unset" between true and false, the two enablingConditions branches
+    // (EQUALS true / NOT_EQUALS true) partition the space between them, and a
+    // defaultValue matching no selectItem lets GTM fall back to the first item.
+    // The field then silently picks a branch, showing fields the tag author
+    // never asked for and hiding the ones they need.
+    const offenders = [];
+    walk(getTemplateParameters(), param => {
+      if (param.type !== 'SELECT') return;
+      const values = (param.selectItems || []).map(item => item.value);
+      if (!values.length || !values.every(value => typeof value === 'boolean')) return;
+      if (!values.includes(param.defaultValue)) {
+        offenders.push(`${param.name} (defaultValue ${JSON.stringify(param.defaultValue)})`);
+      }
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   it('handles every call the dropdown offers, and offers every call it handles', () => {
     const call = findParam(getTemplateParameters(), 'call');
     const offered = call.selectItems.map(item => item.value);

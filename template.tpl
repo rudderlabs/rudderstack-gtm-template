@@ -123,7 +123,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call's event name. The Object and Action will also be included as separate properties in the track call. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
-        "defaultValue": "",
+        "defaultValue": false,
         "enablingConditions": []
       },
       {

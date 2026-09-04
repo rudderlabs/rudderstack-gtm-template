@@ -68,6 +68,13 @@ describe('load on a page with no SDK', () => {
     expect(result.gtmOnFailure).toHaveBeenCalledTimes(1);
     expect(result.gtmOnSuccess).not.toHaveBeenCalled();
   });
+
+  // Leaving the buffer behind would make every later tag push onto an array
+  // nothing will ever drain, and report success doing it.
+  test('discards the buffer so later tags report the SDK as missing', () => {
+    const result = runTemplate(LOAD_DATA, { injectScriptSucceeds: false });
+    expect(result.window.rudderanalytics).toBeNull();
+  });
 });
 
 describe('load on a page where the snippet already ran', () => {

@@ -850,6 +850,24 @@ function dispatch(method, args) {
 }
 
 /** Call = load. See the LOADER_URL warning above. */
+/**
+ * Called when the loader script cannot be fetched.
+ *
+ * The buffer created above is discarded on purpose. Nothing can deliver those
+ * calls now, and leaving the array in place would make every later tag see a
+ * live pre-load buffer, push onto it and report success -- the silent "fired
+ * but nothing sent" failure this template exists to surface. Clearing it makes
+ * later tags report the SDK as missing instead.
+ */
+function loaderFailed() {
+  setInWindow(GLOBAL_NAME, null, true);
+  fail(
+    'the SDK loader could not be fetched from ' +
+      LOADER_URL +
+      ', so the buffered load call was discarded.'
+  );
+}
+
 function loadSdk() {
   if (!isFilled(data.writeKey) || !isFilled(data.dataPlaneUrl)) {
     fail('Write key and Data plane URL are both required for the load call.');
@@ -893,7 +911,7 @@ function loadSdk() {
   // The loader does the feature detection, the method stubs, the globalThis
   // shim and the polyfill branch that the sandbox cannot express, then loads
   // the SDK, which replays the buffered load call.
-  injectScript(LOADER_URL, data.gtmOnSuccess, data.gtmOnFailure, LOADER_CACHE_TOKEN);
+  injectScript(LOADER_URL, data.gtmOnSuccess, loaderFailed, LOADER_CACHE_TOKEN);
 }
 
 function handlePage() {

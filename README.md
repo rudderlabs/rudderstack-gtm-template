@@ -329,11 +329,16 @@ in a GTM preview container before publishing.
 ### Releasing
 
 Releases are automated with [release-please](https://github.com/googleapis/release-please),
-driven by [Conventional Commits](https://www.conventionalcommits.org/). Merging to `main`
-opens or updates a release PR; merging that release PR publishes to the Community Template
-Gallery by adding the release commit's SHA to the `versions` list in `metadata.yaml`. The
-Gallery serves the new version within two to three days, and template users are prompted in
-GTM to accept the update — nothing auto-updates.
+driven by [Conventional Commits](https://www.conventionalcommits.org/).
+
+Merging to `main` opens or updates a release PR carrying everything the release needs: the
+changelog, the version bump, and the Community Template Gallery entry — the `main` commit's
+SHA prepended to the `versions` list in `metadata.yaml`. Merging that release PR *is* the
+publish; there is no follow-up commit on `main`. Google then reads the `template.tpl` found
+at that SHA, which is correct because the release PR itself never touches `template.tpl`.
+
+The Gallery serves the new version within two to three days, and template users are prompted
+in GTM to accept the update — nothing auto-updates.
 
 ## Contact us
 

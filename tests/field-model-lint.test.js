@@ -145,3 +145,84 @@ describe('field model', () => {
     expect(info.containerContexts).toEqual(['WEB']);
   });
 });
+
+/**
+ * GTM field-model semantics.
+ *
+ * These encode behaviour that only surfaced in a real container. Each one
+ * shipped as a bug before it was understood, so they are pinned here rather
+ * than left to be rediscovered.
+ */
+describe('GTM field-model semantics', () => {
+  const walk = (params, visit, parent = null) => {
+    params.forEach(param => {
+      visit(param, parent);
+      if (param.subParams) walk(param.subParams, visit, param);
+    });
+  };
+
+  const allParams = () => {
+    const found = [];
+    walk(getTemplateParameters(), (param, parent) => found.push({ param, parent }));
+    return found;
+  };
+
+  it('never puts enabling conditions on more than one parameter', () => {
+    // Conditions are ORed, including across different parameters, so a field
+    // guarded on `call` AND `useObjectAction` shows whenever EITHER matches.
+    // The AND has to be structural: a GROUP carrying the outer condition, with
+    // a single condition on the child.
+    const offenders = [];
+    walk(getTemplateParameters(), param => {
+      const conditions = param.enablingConditions || [];
+      const params = [...new Set(conditions.map(condition => condition.paramName))];
+      if (params.length > 1) {
+        offenders.push(`${param.name} is conditioned on ${params.join(' and ')}`);
+      }
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('never leaves a variable-picker dropdown to default to a variable', () => {
+    // A SELECT with macrosInSelect renders the container's variable list and
+    // preselects the first entry when defaultValue matches no selectItem, so
+    // every such field arrives pre-filled with someone else's variable.
+    const offenders = [];
+    walk(getTemplateParameters(), param => {
+      if (param.type !== 'SELECT' || !param.macrosInSelect) return;
+      const values = (param.selectItems || []).map(item => item.value);
+      if (!values.includes(param.defaultValue)) {
+        offenders.push(`${param.name} (defaultValue ${JSON.stringify(param.defaultValue)})`);
+      }
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('handles every call the dropdown offers, and offers every call it handles', () => {
+    const call = findParam(getTemplateParameters(), 'call');
+    const offered = call.selectItems.map(item => item.value);
+    const handled = [...findHandledCalls(getSandboxedCode())];
+
+    expect(offered.filter(value => !handled.includes(value))).toEqual([]);
+    expect(handled.filter(value => !offered.includes(value))).toEqual([]);
+  });
+
+  it('keeps every field reachable from some call', () => {
+    // A field whose conditions name a call that does not exist can never show.
+    const call = findParam(getTemplateParameters(), 'call');
+    const offered = call.selectItems.map(item => item.value);
+    const unreachable = [];
+    walk(getTemplateParameters(), param => {
+      (param.enablingConditions || []).forEach(condition => {
+        if (condition.paramName !== 'call') return;
+        if (!offered.includes(condition.paramValue)) {
+          unreachable.push(`${param.name} references call "${condition.paramValue}"`);
+        }
+      });
+    });
+
+    expect(unreachable).toEqual([]);
+  });
+});

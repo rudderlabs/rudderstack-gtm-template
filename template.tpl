@@ -434,7 +434,7 @@ ___TEMPLATE_PARAMETERS___
         "type": "EQUALS"
       }
     ],
-    "defaultValue": ""
+    "defaultValue": false
   },
   {
     "type": "GROUP",

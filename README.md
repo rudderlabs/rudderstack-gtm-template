@@ -326,6 +326,36 @@ Two things the harness cannot check, because Node is not GTM: how GTM marshals v
 across `callInWindow`, and how its runtime validates the permission manifest. Verify those
 in a GTM preview container before publishing.
 
+### End-to-end validation
+
+The harness cannot see how GTM renders the field model, how it marshals values
+across `callInWindow`, or whether a permission is actually granted — three
+classes of bug that have all shipped from this repo. `e2e/` covers them by
+driving a real container against a real data plane.
+
+```sh
+npm run e2e:container -- <WRITE_KEY> <DATA_PLANE_URL>   # writes e2e/container-export.json
+npm run e2e:serve                                        # serves e2e/ on :8000
+npm run e2e:validate -- <GTM-CONTAINER-ID>               # drives every call, prints PASS/FAIL
+```
+
+Import `e2e/container-export.json` through **Admin → Import Container** into a
+*new workspace* with *Merge*. It carries the template, one tag per call, the
+triggers, the object-returning variables the JSON fields need, and the `Click ID`
+built-in variable — without which every click trigger silently never fires.
+
+Two assertion styles, deliberately: event calls are checked on the request
+payload, state calls on SDK state. Conflating them makes a working call look
+broken.
+
+`SKIP` means no tag was wired to that button. A failing **state** call is only
+conclusive against a container built by `generate-container.mjs`, because those
+calls send no request — an unwired button and a broken call are
+indistinguishable from the browser.
+
+Two things stay manual: approving the permission prompt on import, and
+`setAuthToken` / `consent`, which have no client-observable effect.
+
 ### Releasing
 
 Releases are automated with [release-please](https://github.com/googleapis/release-please),

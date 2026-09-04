@@ -97,87 +97,82 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "help": "Select which RudderStack API call you want to make. Use <code>load</code> on an Initialization - All Pages trigger to load the SDK; every other call needs the SDK to be present on the page already. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/\" target=\"_blank\" rel=\"noopener\">JavaScript SDK APIs</a>"
+    "help": "Select which RudderStack API call you want to make. Use <code>load</code> on an Initialization - All Pages trigger to load the SDK; every other call needs the SDK to be present on the page already. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/\" target=\"_blank\" rel=\"noopener\">JavaScript SDK APIs</a>",
+    "defaultValue": ""
   },
   {
-    "type": "SELECT",
-    "name": "useObjectAction",
-    "displayName": "Use object action",
-    "macrosInSelect": false,
-    "selectItems": [
+    "type": "GROUP",
+    "name": "trackEventDetails",
+    "displayName": "Event name",
+    "groupStyle": "NO_ZIPPY",
+    "subParams": [
       {
-        "value": true,
-        "displayValue": "True"
+        "type": "SELECT",
+        "name": "useObjectAction",
+        "displayName": "Use object action",
+        "macrosInSelect": false,
+        "selectItems": [
+          {
+            "value": true,
+            "displayValue": "True"
+          },
+          {
+            "value": false,
+            "displayValue": "False"
+          }
+        ],
+        "simpleValueType": true,
+        "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call's event name. The Object and Action will also be included as seperate properties in the track call. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
+        "defaultValue": "",
+        "enablingConditions": []
       },
       {
-        "value": false,
-        "displayValue": "False"
+        "type": "TEXT",
+        "name": "event",
+        "displayName": "Event",
+        "simpleValueType": true,
+        "help": "Name of the track event. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
+        "enablingConditions": [
+          {
+            "paramName": "useObjectAction",
+            "paramValue": true,
+            "type": "NOT_EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "object",
+        "displayName": "Object",
+        "simpleValueType": true,
+        "help": "First half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
+        "enablingConditions": [
+          {
+            "paramName": "useObjectAction",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "action",
+        "displayName": "Action",
+        "simpleValueType": true,
+        "help": "Second half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
+        "enablingConditions": [
+          {
+            "paramName": "useObjectAction",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
       }
     ],
-    "simpleValueType": true,
-    "help": "Select whether or not you are using the Object-Action framework as a naming convention. If selected, enter separate Object and Action values to create the track call's event name. The Object and Action will also be included as seperate properties in the track call. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
-    "defaultValue": false,
     "enablingConditions": [
       {
         "paramName": "call",
         "paramValue": "track",
-        "type": "EQUALS"
-      }
-    ]
-  },
-  {
-    "type": "TEXT",
-    "name": "event",
-    "displayName": "Event",
-    "simpleValueType": true,
-    "help": "Name of the track event. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
-    "enablingConditions": [
-      {
-        "paramName": "call",
-        "paramValue": "track",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "useObjectAction",
-        "paramValue": false,
-        "type": "EQUALS"
-      }
-    ]
-  },
-  {
-    "type": "TEXT",
-    "name": "object",
-    "displayName": "Object",
-    "simpleValueType": true,
-    "help": "First half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
-    "enablingConditions": [
-      {
-        "paramName": "call",
-        "paramValue": "track",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "useObjectAction",
-        "paramValue": true,
-        "type": "EQUALS"
-      }
-    ]
-  },
-  {
-    "type": "TEXT",
-    "name": "action",
-    "displayName": "Action",
-    "simpleValueType": true,
-    "help": "Second half of the Object-Action event name. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track\" target=\"_blank\" rel=\"noopener\">track docs</a>",
-    "enablingConditions": [
-      {
-        "paramName": "call",
-        "paramValue": "track",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "useObjectAction",
-        "paramValue": true,
         "type": "EQUALS"
       }
     ]
@@ -439,7 +434,7 @@ ___TEMPLATE_PARAMETERS___
         "type": "EQUALS"
       }
     ],
-    "defaultValue": false
+    "defaultValue": ""
   },
   {
     "type": "GROUP",
@@ -460,7 +455,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "User id",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset docs</a>"
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -468,7 +463,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "User traits",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -476,7 +471,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Group id",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -484,7 +479,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Group traits",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -492,7 +487,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Session info",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -500,7 +495,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Auth token",
         "simpleValueType": true,
         "defaultValue": true,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -508,7 +503,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Anonymous id",
         "simpleValueType": true,
         "defaultValue": false,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -516,7 +511,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Initial referrer",
         "simpleValueType": true,
         "defaultValue": false,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       },
       {
         "type": "CHECKBOX",
@@ -524,7 +519,7 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Initial referring domain",
         "simpleValueType": true,
         "defaultValue": false,
-        "help": "Included in the reset call's entries when checked."
+        "help": "Included in the reset call's entries when checked. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset\" target=\"_blank\" rel=\"noopener\">reset API docs</a>"
       }
     ]
   },

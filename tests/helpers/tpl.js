@@ -45,7 +45,9 @@ function parseSections(source) {
 }
 
 function readTemplate(templatePath = TEMPLATE_PATH) {
-  const source = fs.readFileSync(templatePath, 'utf8');
+  // GTM exports `.tpl` files with a UTF-8 BOM; it would otherwise glue itself
+  // to the first section delimiter.
+  const source = fs.readFileSync(templatePath, 'utf8').replace(/^﻿/, '');
   const { sections, order } = parseSections(source);
   return { source, sections, order };
 }

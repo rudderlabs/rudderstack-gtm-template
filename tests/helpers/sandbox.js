@@ -113,7 +113,15 @@ function runTemplate(data, options = {}) {
     setInWindow(key, value, overrideExisting) {
       const existing = resolvePath(win, key);
       const willSet = existing === undefined || overrideExisting === true;
-      record.setInWindow.push({ key, value, overrideExisting, result: willSet });
+      // Snapshot the value: the template hands over a live array that it then
+      // pushes onto, and the record has to show what was set, not what it grew
+      // into.
+      record.setInWindow.push({
+        key,
+        value: Array.isArray(value) ? value.slice() : value,
+        overrideExisting,
+        result: willSet,
+      });
       if (willSet) {
         win[key] = value;
       }

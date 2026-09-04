@@ -1,4 +1,9 @@
 
+### Node ###
+node_modules/
+coverage/
+npm-debug.log*
+
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode
 

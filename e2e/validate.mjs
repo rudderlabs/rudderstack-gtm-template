@@ -16,6 +16,7 @@
 // because "nothing arrived" cannot distinguish an unwired button from a broken
 // one -- only a wrong payload proves a bug.
 
+import { existsSync } from 'node:fs';
 import puppeteer from 'puppeteer-core';
 
 const [containerId, pageUrl = 'http://localhost:8000/test-page.html'] = process.argv.slice(2);
@@ -24,8 +25,21 @@ if (!containerId) {
   process.exit(2);
 }
 
-const CHROME =
-  process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// puppeteer-core ships no browser, so the executable has to be found. Failing
+// here with the reason beats puppeteer's ENOENT from deep inside launch().
+const CHROME_BY_PLATFORM = {
+  darwin: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  linux: '/usr/bin/google-chrome',
+  win32: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+};
+const CHROME = process.env.CHROME_PATH || CHROME_BY_PLATFORM[process.platform];
+if (!CHROME || !existsSync(CHROME)) {
+  console.error(
+    `Chrome not found${CHROME ? ` at ${CHROME}` : ` for platform ${process.platform}`}.\n` +
+      'Set CHROME_PATH to a Chrome or Chromium executable.',
+  );
+  process.exit(2);
+}
 
 const results = [];
 const record = (status, label, detail) => {

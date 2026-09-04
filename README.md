@@ -1,7 +1,7 @@
 # RudderStack GTM Template
 
 A [Google Tag Manager](https://tagmanager.google.com) tag template that sends events to
-RudderStack, and can optionally load the
+RudderStack, and can load the
 [RudderStack JavaScript SDK](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/)
 for you.
 
@@ -11,9 +11,10 @@ Released under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-
 
 - [How it works](#how-it-works)
 - [Installing the SDK](#installing-the-sdk)
-  - [Method 1 — Custom HTML tag](#method-1--custom-html-tag)
-  - [Method 2 — a load tag from this template](#method-2--a-load-tag-from-this-template)
+  - [Method 1 — a load tag from this template](#method-1--a-load-tag-from-this-template)
+  - [Method 2 — Custom HTML tag](#method-2--custom-html-tag)
 - [Sending events](#sending-events)
+- [Verifying your setup](#verifying-your-setup)
 - [Requirements](#requirements)
 - [Field reference](#field-reference)
 - [Limitations](#limitations)
@@ -27,9 +28,11 @@ Released under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-
 A working setup has **two** moving parts, and most problems come from confusing them:
 
 1. **The SDK on the page.** Something has to put `window.rudderanalytics` there and call
-   `load()` with your write key and data plane URL.
-2. **Tags built from this template.** Each one makes a single SDK call — `page`, `track`,
-   `identify`, and so on — when its trigger fires.
+   [`load()`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/)
+   with your write key and data plane URL.
+2. **Tags built from this template.** Each one makes a single
+   [SDK API call](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/)
+   — `page`, `track`, `identify`, and so on — when its trigger fires.
 
 This template is a **sandboxed** GTM custom template. Sandboxed code has no access to
 `window`, `document`, the DOM, or `eval`. It reaches your page only through APIs that GTM
@@ -40,7 +43,7 @@ here is `callInWindow`:
 callInWindow('rudderanalytics.track', eventName, properties);
 ```
 
-Two consequences follow from that, and they explain almost everything below.
+Two consequences follow, and they explain almost everything below.
 
 **`window.rudderanalytics` must already exist when a tag fires.** GTM resolves that key
 path at call time. If nothing is there, the call goes nowhere. GTM does not throw and does
@@ -49,7 +52,7 @@ not log — see [Installing the SDK](#installing-the-sdk) for how to guarantee o
 **"Still loading" is fine; "not there" is not.** Before `rsa.min.js` finishes loading,
 `window.rudderanalytics` is a plain array — the SDK's pre-load buffer. This template
 detects that and pushes onto the buffer, which the SDK replays once it is ready. An event
-fired one millisecond after the snippet is not lost.
+fired one millisecond after the loader is not lost.
 
 ## Installing the SDK
 
@@ -62,17 +65,46 @@ fired one millisecond after the snippet is not lost.
 > promise.
 >
 > So if your SDK tag and your event tags are both on `All Pages`, your `page` tag can win
-> the race, find no `window.rudderanalytics`, and send nothing. In template versions
-> before this one it then reported success anyway: GTM showed the tag as **Fired**, the
-> console was clean, and no request left the browser — while the SDK finished loading
-> moments later and looked perfectly healthy to every check you ran afterwards.
+> the race, find no `window.rudderanalytics`, and send nothing. Earlier versions of this
+> template then reported success anyway: GTM showed the tag as **Fired**, the console was
+> clean, and no request left the browser — while the SDK finished loading moments later
+> and looked perfectly healthy to every check you ran afterwards.
 >
 > This version reports a tag **failure** with a reason instead. The fix is still the same:
 > use `Initialization - All Pages`.
 
-### Method 1 — Custom HTML tag
+### Method 1 — a load tag from this template
 
-Available today, and the way every current installation works.
+The recommended setup. No snippet to paste, no Custom HTML tag, and one less place for the
+ordering mistake above to happen. It also matters for organisations that disable Custom
+HTML tags in GTM for security review — a sandboxed template with a declared permission
+manifest is then the only way tracking gets approved.
+
+> [!WARNING]
+> **Landing in the next release.** The `load` call is implemented but depends on a
+> CDN-hosted loader artifact (`https://cdn.rudderlabs.com/v3/loader.min.js`) that has not
+> been published yet; it is being built and released from the
+> [rudder-sdk-js](https://github.com/rudderlabs/rudder-sdk-js) monorepo. Until it ships,
+> use [Method 2](#method-2--custom-html-tag).
+
+1. In RudderStack, open your JavaScript source and copy its **write key** and
+   **data plane URL**.
+2. Create a tag from this template with **Call** set to `load`.
+3. Fill in **Write key** and **Data plane URL**. Optionally point **Load options** at a
+   JSON variable holding the SDK's
+   [load options](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/).
+4. Trigger it on **Initialization - All Pages**.
+
+The tag creates `window.rudderanalytics` as an empty array if it is not already there,
+pushes the `load` call onto it, and injects the loader. The loader performs the build-type
+feature detection, method stubs, `globalThis` shim and polyfill branch that a GTM sandbox
+cannot express, then loads the SDK, which replays the buffered call.
+
+### Method 2 — Custom HTML tag
+
+Use this when you want to hand-edit the loading snippet — pinning an SDK version, hosting
+the SDK yourself, or setting load options that are easier to express in JavaScript than in
+a GTM variable. It is also the only option until the loader artifact above ships.
 
 1. In RudderStack, open your JavaScript source and copy its **write key** and
    **data plane URL**.
@@ -91,37 +123,6 @@ Available today, and the way every current installation works.
 3. Set its trigger to **Initialization - All Pages**. Not `All Pages`. See the note above.
 4. Leave **Support document.write()** unchecked.
 
-To verify: load the page with GTM Preview, and in the browser console run
-`Array.isArray(window.rudderanalytics)`. `false` means the SDK is loaded; `true` means it
-is still loading and buffering, which is also fine. `undefined` means the tag did not run.
-
-### Method 2 — a load tag from this template
-
-> [!WARNING]
-> **Not yet available.** The `load` call value is implemented but depends on a CDN-hosted
-> loader artifact (`https://cdn.rudderlabs.com/v3/loader.min.js`) that **has not been
-> published yet**. It has to be built and released from the
-> [rudder-sdk-js](https://github.com/rudderlabs/rudder-sdk-js) monorepo
-> (`packages/loading-scripts`) first. Until then, use
-> [Method 1](#method-1--custom-html-tag). The URL lives in a single named constant at the
-> top of the template's code, so pointing it elsewhere is a one-line change plus the
-> matching `inject_script` permission entry.
-
-Once the artifact ships, this replaces the Custom HTML tag entirely — which matters,
-because many organisations disable Custom HTML tags in GTM for security review reasons,
-and a sandboxed template with a declared permission manifest is the only way tracking gets
-approved.
-
-1. Create a tag from this template with **Call** set to `load`.
-2. Fill in **Write key** and **Data plane URL**, and optionally point **Load options** at a
-   JSON variable holding the SDK's `LoadOptions`.
-3. Trigger it on **Initialization - All Pages**.
-
-The tag creates `window.rudderanalytics` as an empty array if it is not already there,
-pushes the `load` call onto it, and injects the loader. The loader performs the build-type
-feature detection, method stubs, `globalThis` shim and polyfill branch that a GTM sandbox
-cannot express, then loads the SDK, which replays the buffered call.
-
 ## Sending events
 
 1. In your GTM workspace, go to **Templates** and add **RudderStack** from the Community
@@ -130,13 +131,38 @@ cannot express, then loads the SDK, which replays the buffered call.
 3. Create a tag from the template, pick a **Call**, fill in the fields shown for that call,
    and attach a trigger.
 
+Each call maps directly onto a documented SDK API. The
+[JavaScript SDK APIs](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/)
+page is the reference for argument semantics; the [field reference](#field-reference) below
+says which template field feeds which argument.
+
 The tag reports failure to GTM, with a reason in the debug console, whenever it cannot
 dispatch the call. See [Troubleshooting](#troubleshooting).
 
+## Verifying your setup
+
+Install the
+[RudderStack Events Tracking Assistant](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/events-tracking-assistant/),
+the official browser extension for Chrome and Firefox. Open it from DevTools (the
+**RudderStack Assistant** panel) *before* reproducing the behaviour you want to check — it
+does not capture events retroactively.
+
+It answers both halves of a GTM setup in one place:
+
+- **Did the SDK load?** The health view shows the SDK version, write key, data plane URL
+  and installation type. If it reports no SDK, your loading tag did not run.
+- **Did the event actually go out?** Every call is listed with its full payload and its
+  delivery status, so a tag that GTM reports as *Fired* but that sent nothing is
+  immediately visible.
+
+Pair it with GTM Preview, which tells you whether the tag fired at all. Between them, the
+"fired but nothing sent" failure has nowhere to hide. The extension requires JavaScript SDK
+v3 or later.
+
 ## Requirements
 
-The template targets **JavaScript SDK v3**. The three calls that shipped in the original
-2022 template (`page`, `track`, `identify`) still work against v1.1, but nothing else does.
+The template targets **JavaScript SDK v3**. The three calls that the template has always
+supported (`page`, `track`, `identify`) still work against v1.1, but nothing else does.
 
 | Call | Minimum SDK version |
 | --- | --- |
@@ -152,30 +178,30 @@ The template targets **JavaScript SDK v3**. The three calls that shipped in the 
 
 | Field | Call | Required | Notes |
 | --- | --- | --- | --- |
-| Category | `page` | no | Only sent as the page category when **Name** is also set. The SDK declares no overload that takes a category on its own, so on its own it is sent as a page property instead. |
-| Name | `page` | no | Page name. |
-| Use object action | `track` | no | When `True`, the event name is `Object + " " + Action`, and `category`, `object` and `action` are added as properties. |
-| Event | `track` | yes, unless **Use object action** is `True` | Event name. |
-| Object, Action | `track` | yes, when **Use object action** is `True` | |
-| User id | `identify` | no | Leave empty to update the current user's traits without changing their identity. |
-| Group id | `group` | no | Leave empty to update the current group's traits without changing it. |
-| To | `alias` | yes | The new identifier. |
-| From | `alias` | no | Previous identifier. Defaults to the current user id. |
+| Category | [`page`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#page) | no | Only sent as the page category when **Name** is also set. The SDK declares no overload that takes a category on its own — a lone string is reinterpreted as the name — so on its own it is sent as a page property instead. |
+| Name | [`page`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#page) | no | Page name. |
+| Use object action | [`track`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track) | no | When `True`, the event name is `Object + " " + Action`, and `category`, `object` and `action` are added as properties. |
+| Event | [`track`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track) | yes, unless **Use object action** is `True` | Event name. |
+| Object, Action | [`track`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#track) | yes, when **Use object action** is `True` | |
+| User id | [`identify`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#identify) | no | Leave empty to update the current user's traits without changing their identity. |
+| Group id | [`group`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#group) | no | Leave empty to update the current group's traits without changing it. |
+| To | [`alias`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#alias) | yes | The new identifier. |
+| From | [`alias`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#alias) | no | Previous identifier. Defaults to the current user id. |
 | Default properties or traits | `page`, `track`, `identify`, `group` | no | A JSON object variable merged into every such call. It must return an **object** — a plain GTM variable such as `{{Event}}` returns a string and contributes nothing. |
 | Custom properties or traits | `page`, `track`, `identify`, `group` | no | Per-tag key/value table. **Takes precedence over Default properties or traits.** |
-| Options | `page`, `track`, `identify`, `group`, `alias` | no | A JSON object variable sent as the call's `ApiOptions`: per-event `integrations` filtering, `anonymousId`, `originalTimestamp`, context overrides. |
+| Options | `page`, `track`, `identify`, `group`, `alias` | no | A JSON object variable sent as the call's options argument: per-event `integrations` filtering, `anonymousId`, `originalTimestamp`, context overrides. |
 | Suppress Google Analytics | `identify` | no | **Deprecated.** Emits `{integrations: {All: true, "Google Analytics": false}}`, which targets the deprecated Universal Analytics destination and has no effect on Google Analytics 4 (GA4). Use **Options** instead. An explicit **Options** value overrides it. |
 
 ### Identity and session calls
 
 | Field | Call | Required | Notes |
 | --- | --- | --- | --- |
-| Reset options | `reset` | no | Nine checkboxes mapping to the SDK's `ResetOptions.entries`. Pre-set to the SDK's own `DEFAULT_RESET_OPTIONS`, so an untouched tag reproduces a plain `reset()`: user id, user traits, group id, group traits, session info and auth token on; anonymous id, initial referrer and initial referring domain off. |
-| Anonymous id | `setAnonymousId` | yes | |
-| Session id | `startSession` | no | Must be numeric. Leave empty to let the SDK generate one. |
-| Auth token | `setAuthToken` | yes | |
-| Custom context | `setCustomContext` | yes | A JSON object variable merged into the context of every subsequent event. |
-| Consent options | `consent` | no | A JSON object variable holding the SDK's `ConsentOptions`. |
+| Reset options | [`reset`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#reset) | no | Nine checkboxes mapping to the SDK's `ResetOptions.entries`. Pre-set to the SDK's own defaults, so an untouched tag reproduces a plain `reset()`: user id, user traits, group id, group traits, session info and auth token on; anonymous id, initial referrer and initial referring domain off. |
+| Anonymous id | [`setAnonymousId`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#anonymous-user-id) | yes | |
+| Session id | [`startSession`](https://www.rudderstack.com/docs/sources/event-streams/sdks/session-tracking/manual-session-tracking/) | no | Must be numeric. Leave empty to let the SDK generate one. |
+| Auth token | `setAuthToken` | yes | Not covered by the public JavaScript SDK documentation yet. |
+| Custom context | [`setCustomContext`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#custom-context) | yes | A JSON object variable merged into the context of every subsequent event. |
+| Consent options | [`consent`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/supported-api/#consent) | no | A JSON object variable holding the SDK's `ConsentOptions`. See [consent management](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/consent-management/). |
 
 `endSession` and `clearCustomContext` take no fields.
 
@@ -183,9 +209,9 @@ The template targets **JavaScript SDK v3**. The three calls that shipped in the 
 
 | Field | Call | Required |
 | --- | --- | --- |
-| Write key | `load` | yes |
-| Data plane URL | `load` | yes |
-| Load options | `load` | no |
+| Write key | [`load`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/) | yes |
+| Data plane URL | [`load`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/) | yes |
+| Load options | [`load`](https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/) | no |
 
 ## Limitations
 
@@ -224,30 +250,40 @@ dispatch a call:
 | `Anonymous id is required` / `Auth token is required` | | |
 | `Custom context must be a JSON object variable` / `Consent options must be a JSON object variable` | The variable resolved to a string or to nothing. | Point the field at a variable that returns an object. |
 | `Session id must be a number` | | Use a numeric timestamp. |
+| `Write key and Data plane URL are both required` | A `load` tag is missing its credentials. | Copy both from your RudderStack source. |
 
-If GTM reports the tag as **Fired** with no console message, the call was dispatched. Look
-at the Network tab for a request to your data plane; if there is none, the problem is in
-the SDK's configuration rather than in this tag.
+If GTM reports the tag as **Fired** with no console message, the call was dispatched. Check
+the [Events Tracking Assistant](#verifying-your-setup) or the Network tab for a request to
+your data plane; if there is none, the problem is in the SDK's configuration rather than in
+this tag.
 
 ### Every event carries a `defaultProp` or `defaultTrait` key
 
-Fixed in this version. An empty or non-object **Default properties or traits** variable now
-contributes nothing, instead of injecting a `defaultProp` / `defaultTrait` key into every
-event. If you are still seeing it, the field is pointed at a variable that returns a
-string — `{{Event}}` and `{{Page URL}}` are common mistakes. It needs a variable that
-returns an object, such as a Custom JavaScript variable.
+**Default properties or traits** must point at a variable that returns an **object**. When
+it returns a string or nothing, it contributes nothing to the call — `{{Event}}` and
+`{{Page URL}}` are common mistakes. Use a Custom JavaScript variable that returns an
+object, for example:
+
+```js
+function () {
+  return {
+    page_location: {{Page URL}},
+    page_title: {{Page Title}}
+  };
+}
+```
 
 ### A tag-specific value is being overwritten
 
-It no longer is. Before this version, **Default properties or traits** was merged *after*
-**Custom properties or traits** and therefore won. That is reversed: custom values now take
-precedence.
+**Custom properties or traits** takes precedence over **Default properties or traits**. If
+you are seeing the opposite, the container is still on an older version of this template —
+accept the update prompt in GTM.
 
 ### The `group` call does nothing
 
-Fixed in this version. `group` was in the dropdown from 2022 onward with no implementation
-behind it and no permission entry, so selecting it fired nothing and still reported
-success.
+`group` is implemented from version 2.0.0 onward. In earlier versions it appeared in the
+dropdown with no implementation behind it, so selecting it fired nothing and still reported
+success. Accept the update prompt in GTM.
 
 ## Manual import
 
@@ -278,21 +314,26 @@ The suite covers three families:
 - **Manifest lint** — every `callInWindow` / `copyFromWindow` / `setInWindow` key path and
   every `injectScript` URL reachable in the code must be declared in
   `___WEB_PERMISSIONS___`, with the right flag. This is what would have caught `group`
-  shipping in the dropdown in 2022 with no permission entry.
+  shipping in the dropdown with no permission entry.
 - **Field-model lint** — every `call` dropdown value has a code branch, every
-  `enablingConditions` chain references a field that exists, and every field name that
-  shipped in 2022 still exists.
+  `enablingConditions` chain references a field that exists, and every field name the
+  template has ever shipped still exists.
 
-The `___TESTS___` block inside `template.tpl` is a smoke test for the GTM editor's test
-tab, not the source of truth.
+The `___TESTS___` block inside `template.tpl` mirrors the harness for the GTM editor's test
+tab. It is a convenience, not the source of truth.
 
 Two things the harness cannot check, because Node is not GTM: how GTM marshals values
 across `callInWindow`, and how its runtime validates the permission manifest. Verify those
 in a GTM preview container before publishing.
 
-Publishing to the Gallery is a separate, deliberate act: merging to the default branch does
-nothing until a commit SHA is added to the `versions` list in `metadata.yaml`, in reverse
-chronological order with `changeNotes`.
+### Releasing
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please),
+driven by [Conventional Commits](https://www.conventionalcommits.org/). Merging to `main`
+opens or updates a release PR; merging that release PR publishes to the Community Template
+Gallery by adding the release commit's SHA to the `versions` list in `metadata.yaml`. The
+Gallery serves the new version within two to three days, and template users are prompted in
+GTM to accept the update — nothing auto-updates.
 
 ## Contact us
 

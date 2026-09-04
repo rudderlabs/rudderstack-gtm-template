@@ -1,6 +1,6 @@
 {
   "name": "rudderstack-gtm-template",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "RudderStack tag template for Google Tag Manager",
   "license": "Apache-2.0",
@@ -12,9 +12,9 @@
     "test": "jest"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "devDependencies": {
-    "jest": "29.7.0"
+    "jest": "30.5.1"
   }
 }

@@ -16,12 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -29,3 +31,43 @@ jobs:
 
       - name: Run the template harness
         run: npm test
+
+  metadata:
+    name: Gallery metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Every published version must point at a real commit
+        run: |
+          python3 - <<'PY'
+          import re
+          import subprocess
+          import sys
+
+          with open('metadata.yaml') as handle:
+              shas = re.findall(r'^\s*-\s*sha:\s*([0-9a-f]{40})\s*$', handle.read(), re.M)
+
+          if not shas:
+              sys.exit('metadata.yaml lists no versions')
+
+          failed = False
+          for sha in shas:
+              result = subprocess.run(
+                  ['git', 'cat-file', '-e', '%s^{commit}' % sha],
+                  capture_output=True,
+              )
+              status = 'ok' if result.returncode == 0 else 'MISSING'
+              if result.returncode != 0:
+                  failed = True
+              print('%s %s' % (status, sha))
+
+          if failed:
+              sys.exit('metadata.yaml references commits that do not exist')
+
+          print('%d version(s) verified' % len(shas))
+          PY

@@ -43,17 +43,21 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 1000 });
 
+// Matched on the path and the payload shape rather than the host, so a custom
+// data plane domain is captured too.
+const EVENT_PATH = /\/v1\/(page|track|identify|group|alias|batch)(\?|$)/;
+
 let captured = [];
 page.on('request', request => {
   const url = request.url();
-  if (!/dataplane\.rudderstack\.com\/v1\//.test(url) || request.method() !== 'POST') return;
+  if (!EVENT_PATH.test(url) || request.method() !== 'POST') return;
   let body = {};
   try {
     body = JSON.parse(request.postData() || '{}');
   } catch {
     body = {};
   }
-  (body.batch || [body]).forEach(event => captured.push(event));
+  (body.batch || [body]).filter(event => event && event.type).forEach(event => captured.push(event));
 });
 
 const pageErrors = [];

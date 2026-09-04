@@ -61,6 +61,25 @@ jobs:
 
       # release-please rewrites this branch on every push to main, so an entry
       # for the pending release is replaced rather than stacked.
+      # yq is not present on the self-hosted runners, so it is fetched at a
+      # pinned version and checksum-verified rather than assumed.
+      - name: Install yq
+        env:
+          YQ_VERSION: v4.53.6
+          YQ_SHA256: c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+        run: |
+          set -euo pipefail
+          if command -v yq >/dev/null 2>&1; then
+            echo "yq already present: $(yq --version)"
+            exit 0
+          fi
+          curl -fsSL -o /tmp/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
+          chmod +x /tmp/yq
+          sudo mv /tmp/yq /usr/local/bin/yq
+          yq --version
+
       - name: Add the Gallery entry to the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}
         env:

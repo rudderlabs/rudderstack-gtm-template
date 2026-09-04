@@ -1,10 +1,10 @@
 /**
  * Field-model lint.
  *
- * `enablingConditions` are ANDed - GTM has no OR - so every new `call` value
- * means revisiting every visibility chain. These tests keep the form model and
- * the code from drifting apart, and pin the additive-only guarantee: every
- * field name that shipped in 2022 is still bound to the same meaning.
+ * `enablingConditions` are ORed, including across different parameters, so an
+ * AND has to be expressed structurally with a GROUP. These tests keep the form
+ * model and the code from drifting apart, and pin the additive-only guarantee:
+ * every field name that shipped in 2022 is still bound to the same meaning.
  */
 
 const { getSandboxedCode, getTemplateParameters, getInfo } = require('./helpers/tpl');

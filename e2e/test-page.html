@@ -177,7 +177,7 @@
       var url = entry.name;
       if (seen[url + entry.startTime]) return;
       seen[url + entry.startTime] = true;
-      if (/dataplane\.rudderstack\.com/.test(url)) {
+      if (/\/v1\/(page|track|identify|group|alias|batch)(\?|$)/.test(url)) {
         logLine('EVENT   ' + url.replace(/^https:\/\/[^/]+/, ''));
       } else if (/cdn\.rudderlabs\.com/.test(url)) {
         logLine('ASSET   ' + url.replace('https://cdn.rudderlabs.com', ''));

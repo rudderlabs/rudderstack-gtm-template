@@ -319,55 +319,26 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "call",
-        "paramValue": "alias",
-        "type": "NOT_EQUALS"
+        "paramValue": "page",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "reset",
-        "type": "NOT_EQUALS"
+        "paramValue": "track",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "consent",
-        "type": "NOT_EQUALS"
+        "paramValue": "identify",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "startSession",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "endSession",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setAnonymousId",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "clearCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setAuthToken",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "load",
-        "type": "NOT_EQUALS"
+        "paramValue": "group",
+        "type": "EQUALS"
       }
-    ]
+    ],
+    "defaultValue": ""
   },
   {
     "type": "SIMPLE_TABLE",
@@ -391,53 +362,23 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "call",
-        "paramValue": "alias",
-        "type": "NOT_EQUALS"
+        "paramValue": "page",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "reset",
-        "type": "NOT_EQUALS"
+        "paramValue": "track",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "consent",
-        "type": "NOT_EQUALS"
+        "paramValue": "identify",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "startSession",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "endSession",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setAnonymousId",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "clearCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setAuthToken",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "load",
-        "type": "NOT_EQUALS"
+        "paramValue": "group",
+        "type": "EQUALS"
       }
     ]
   },
@@ -452,50 +393,31 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "call",
-        "paramValue": "reset",
-        "type": "NOT_EQUALS"
+        "paramValue": "page",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "consent",
-        "type": "NOT_EQUALS"
+        "paramValue": "track",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "startSession",
-        "type": "NOT_EQUALS"
+        "paramValue": "identify",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "endSession",
-        "type": "NOT_EQUALS"
+        "paramValue": "group",
+        "type": "EQUALS"
       },
       {
         "paramName": "call",
-        "paramValue": "setAnonymousId",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "clearCustomContext",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "setAuthToken",
-        "type": "NOT_EQUALS"
-      },
-      {
-        "paramName": "call",
-        "paramValue": "load",
-        "type": "NOT_EQUALS"
+        "paramValue": "alias",
+        "type": "EQUALS"
       }
-    ]
+    ],
+    "defaultValue": ""
   },
   {
     "type": "SELECT",
@@ -520,7 +442,8 @@ ___TEMPLATE_PARAMETERS___
         "paramValue": "identify",
         "type": "EQUALS"
       }
-    ]
+    ],
+    "defaultValue": false
   },
   {
     "type": "GROUP",
@@ -623,7 +546,8 @@ ___TEMPLATE_PARAMETERS___
         "paramValue": "setCustomContext",
         "type": "EQUALS"
       }
-    ]
+    ],
+    "defaultValue": ""
   },
   {
     "type": "SELECT",
@@ -639,7 +563,8 @@ ___TEMPLATE_PARAMETERS___
         "paramValue": "consent",
         "type": "EQUALS"
       }
-    ]
+    ],
+    "defaultValue": ""
   },
   {
     "type": "GROUP",
@@ -675,7 +600,8 @@ ___TEMPLATE_PARAMETERS___
         "macrosInSelect": true,
         "selectItems": [],
         "simpleValueType": true,
-        "help": "Optional. Select a JSON object variable holding the SDK's <code>LoadOptions</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load options reference</a>"
+        "help": "Optional. Select a JSON object variable holding the SDK's <code>LoadOptions</code>. <a href=\"https://www.rudderstack.com/docs/sources/event-streams/sdks/rudderstack-javascript-sdk/load-js-sdk/\" target=\"_blank\" rel=\"noopener\">load options reference</a>",
+        "defaultValue": ""
       }
     ]
   }

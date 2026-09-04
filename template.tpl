@@ -723,7 +723,13 @@ function globalState() {
   if (type === 'array') {
     return 'buffer';
   }
-  return 'loaded';
+  if (type === 'object' || type === 'function') {
+    return 'loaded';
+  }
+  // A scalar means something else on the page has taken the name. Dispatching
+  // into it would be a no-op that still reported success, so it gets its own
+  // state and is refused rather than treated as a loaded SDK.
+  return 'invalid';
 }
 
 /**
@@ -828,6 +834,17 @@ function directCall(method, args) {
 function dispatch(method, args) {
   const state = globalState();
 
+  if (state === 'invalid') {
+    fail(
+      'the "' +
+        GLOBAL_NAME +
+        '" global holds a value that is not the SDK, so the ' +
+        method +
+        ' call was not sent.'
+    );
+    return;
+  }
+
   if (state === 'absent') {
     fail(
       'the "' +
@@ -881,10 +898,13 @@ function loadSdk() {
 
   const initialState = globalState();
   var state = initialState;
-  if (state === 'absent') {
-    // overrideExisting stays false so a loading snippet that ran first is
-    // never clobbered.
-    setInWindow(GLOBAL_NAME, [], false);
+  if (state === 'absent' || state === 'invalid') {
+    // overrideExisting has to be true: 'absent' covers a null left behind by an
+    // earlier failed load, and setInWindow will not replace an existing key
+    // otherwise -- the buffer would then be pushed onto a value that cannot
+    // hold it. A load tag is the one call entitled to establish this global, so
+    // it also repairs a scalar left by something else.
+    setInWindow(GLOBAL_NAME, [], true);
     state = 'buffer';
   }
 

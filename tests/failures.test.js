@@ -120,3 +120,17 @@ describe('success', () => {
     expect(result.gtmOnFailure).not.toHaveBeenCalled();
   });
 });
+
+describe('a global that is not the SDK', () => {
+  // Dispatching into a scalar is a no-op that would still report success -- the
+  // failure mode this template exists to surface.
+  test.each(['string', 42, true])('refuses to dispatch into %p', value => {
+    const result = runTemplate(
+      { call: 'track', event: 'Order Completed' },
+      { window: { rudderanalytics: value } },
+    );
+    expect(result.callInWindow).toEqual([]);
+    expect(result.gtmOnFailure).toHaveBeenCalledTimes(1);
+    expect(result.gtmOnSuccess).not.toHaveBeenCalled();
+  });
+});

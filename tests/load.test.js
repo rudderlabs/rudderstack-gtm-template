@@ -18,10 +18,13 @@ const LOAD_DATA = {
 };
 
 describe('load on a page with no SDK', () => {
-  test('creates the buffer without overwriting an existing global', () => {
+  test('creates the buffer', () => {
+    // overrideExisting is true so a null left by an earlier failed load can be
+    // replaced; an existing SDK or buffer is protected by the branch above it,
+    // which never reaches this call.
     const result = runTemplate(LOAD_DATA);
     expect(result.setInWindow).toEqual([
-      { key: 'rudderanalytics', value: [], overrideExisting: false, result: true },
+      { key: 'rudderanalytics', value: [], overrideExisting: true, result: true },
     ]);
   });
 
@@ -83,6 +86,11 @@ describe('load on a page where the snippet already ran', () => {
     expect(result.window.rudderanalytics).toEqual([
       ['load', 'write-key-1', 'https://example.dataplane.rudderstack.com'],
     ]);
+  });
+
+  test('never touches the existing global', () => {
+    const result = runTemplate(LOAD_DATA, { window: bufferingSdkWindow() });
+    expect(result.setInWindow).toEqual([]);
   });
 
   // Whatever put the global there is already fetching the SDK. Injecting again

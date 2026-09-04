@@ -52,30 +52,34 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Extract the published versions
+        uses: mikefarah/yq@e1d5d6eb36b8995bf29e5acb561659824dc47be3 # v4.53.6
+        with:
+          cmd: yq -r '.versions[].sha' metadata.yaml > published-shas.txt
+
       - name: Every published version must point at a real commit
         run: |
           set -euo pipefail
 
-          shas=$(grep -oE '^[[:space:]]*-[[:space:]]*sha:[[:space:]]*[0-9a-f]{40}$' metadata.yaml | grep -oE '[0-9a-f]{40}' || true)
-
-          if [ -z "${shas}" ]; then
+          if [ ! -s published-shas.txt ]; then
             echo "metadata.yaml lists no versions" >&2
             exit 1
           fi
 
           failed=0
-          for sha in ${shas}; do
+          while read -r sha; do
+            [ -n "${sha}" ] || continue
             if git cat-file -e "${sha}^{commit}" 2>/dev/null; then
               echo "ok ${sha}"
             else
               echo "MISSING ${sha}"
               failed=1
             fi
-          done
+          done < published-shas.txt
 
           if [ "${failed}" -ne 0 ]; then
             echo "metadata.yaml references commits that do not exist" >&2
             exit 1
           fi
 
-          echo "$(printf '%s\n' "${shas}" | wc -l | tr -d ' ') version(s) verified"
+          echo "$(wc -l < published-shas.txt | tr -d ' ') version(s) verified"

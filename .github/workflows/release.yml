@@ -54,54 +54,30 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: true
+          persist-credentials: false
 
+      # release-please rewrites this branch on every push to main, so an entry
+      # for the pending release is replaced rather than stacked.
       - name: Add the Gallery entry to the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}
+        uses: mikefarah/yq@e1d5d6eb36b8995bf29e5acb561659824dc47be3 # v4.53.6
         env:
           # The main commit this release PR is based on. Its template.tpl is
           # exactly what this release ships, which is what Google reads.
-          RELEASE_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
+          SHA: ${{ github.sha }}
+        with:
+          cmd: |
+            NOTE="Release $(yq -r '.["."]' .release-please-manifest.json)" \
+            yq -i '.versions = [{"sha": strenv(SHA), "changeNotes": strenv(NOTE)}]
+                     + (.versions | map(select(.changeNotes != strenv(NOTE))))' metadata.yaml
 
-          version=$(sed -n 's/.*"\.":[[:space:]]*"\([^"]*\)".*/\1/p' .release-please-manifest.json)
-          if [ -z "${version}" ]; then
-            echo "could not read the release version from .release-please-manifest.json" >&2
-            exit 1
-          fi
-
-          # release-please rewrites this branch on every push to main, so a
-          # pending entry for this version is replaced rather than stacked.
-          awk -v sha="${RELEASE_SHA}" -v note="Release ${version}" '
-            { lines[NR] = $0 }
-            END {
-              for (i = 1; i <= NR; i++) {
-                print lines[i]
-                if (lines[i] == "versions:") {
-                  print "  - sha: " sha
-                  print "    changeNotes: " note
-                  if (i + 2 <= NR && lines[i + 2] == "    changeNotes: " note) {
-                    i += 2
-                  }
-                }
-              }
-            }
-          ' metadata.yaml > metadata.yaml.tmp
-
-          mv metadata.yaml.tmp metadata.yaml
-          echo "recorded ${RELEASE_SHA} for ${version}"
-
-      - name: Commit to the release PR
+      - name: Create a verified commit on the release PR
         if: ${{ steps.release.outputs.prs_created == 'true' }}
-        run: |
-          if git diff --quiet -- metadata.yaml; then
-            echo "metadata.yaml already current, nothing to commit"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add metadata.yaml
-          git commit -m "chore: publish this release to the gallery"
-          git push
+        uses: ryancyq/github-signed-commit@cb9b21ee83578fe8e26a9eda530015aedf0c7c5b # v1.4.1
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        with:
+          branch-name: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          commit-message: 'chore: publish this release to the gallery'
+          files: |
+            metadata.yaml

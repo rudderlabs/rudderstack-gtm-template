@@ -334,9 +334,12 @@ classes of bug that have all shipped from this repo. `e2e/` covers them by
 driving a real container against a real data plane.
 
 ```sh
-npm run e2e:container -- <WRITE_KEY> <DATA_PLANE_URL>   # writes e2e/container-export.json
-npm run e2e:serve                                        # serves e2e/ on :8000
-npm run e2e:validate -- <GTM-CONTAINER-ID>               # drives every call, prints PASS/FAIL
+export RS_WRITE_KEY=...        # never checked in; the export it lands in is gitignored
+export RS_DATA_PLANE_URL=...
+
+npm run e2e:container            # writes e2e/container-export.json
+npm run e2e:serve                # serves e2e/ on :8000
+npm run e2e:validate -- <GTM-CONTAINER-ID>   # drives every call, prints PASS/FAIL
 ```
 
 Import `e2e/container-export.json` through **Admin → Import Container** into a

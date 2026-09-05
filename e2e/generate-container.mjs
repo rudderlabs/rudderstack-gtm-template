@@ -2,7 +2,10 @@
 // Generates a GTM container export that wires up every call the template
 // supports, pointing at the buttons on e2e/test-page.html.
 //
-//   npm run e2e:container -- <WRITE_KEY> <DATA_PLANE_URL> [template.tpl]
+//   RS_WRITE_KEY=... RS_DATA_PLANE_URL=... npm run e2e:container -- [template.tpl]
+//
+// The credentials come from the environment, never from a file or the shell
+// history of a committed command. The export they end up in is gitignored.
 //
 // Import the result in GTM: Admin > Import Container > choose a new workspace
 // and "Merge / Rename conflicting". The custom template travels with it, so
@@ -10,8 +13,8 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const [writeKey = '', dataPlaneUrl = '', tplPath = 'template.tpl'] =
-  process.argv.slice(2);
+const { RS_WRITE_KEY: writeKey = '', RS_DATA_PLANE_URL: dataPlaneUrl = '' } = process.env;
+const [tplPath = 'template.tpl'] = process.argv.slice(2);
 
 const templateData = readFileSync(tplPath, 'utf8');
 
@@ -172,5 +175,8 @@ writeFileSync(out, `${JSON.stringify(container, null, 2)}\n`);
 
 console.log(`${out}: ${tags.length} tags, ${triggers.length} triggers, ${variables.length} variables`);
 if (!writeKey || !dataPlaneUrl) {
-  console.log('NOTE: write key / data plane URL are empty - fill them in on the load tag after import.');
+  console.log(
+    'NOTE: RS_WRITE_KEY / RS_DATA_PLANE_URL are unset, so the load tag is blank -\n' +
+      '      set them and regenerate, or fill the tag in by hand after import.',
+  );
 }

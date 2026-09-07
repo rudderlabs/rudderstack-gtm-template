@@ -55,24 +55,51 @@ jobs:
       # the release mergeable without publishing its template. Resolve the open
       # release PR from its label instead, so the steps below are driven by
       # whether a release is pending rather than by what this run happened to do.
+      #
+      # Deliberately not `gh pr list --label`: that issues a GraphQL search,
+      # and the search index trails PR creation by seconds -- long enough to
+      # miss a release PR labelled one second earlier, which is exactly what
+      # happened. The pulls endpoint reads the pull requests themselves, and
+      # the label is matched here.
       - name: Find the open release PR
         id: release-pr
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO: ${{ github.repository }}
+          PRS_CREATED: ${{ steps.release.outputs.prs_created }}
         run: |
           set -euo pipefail
 
-          branch=$(gh pr list --repo "${REPO}" --state open \
-            --label 'autorelease: pending' --json headRefName \
-            --jq 'first.headRefName // ""')
+          # An empty result is only suspicious when release-please just wrote
+          # the PR, so that is the one case worth waiting out replica lag for.
+          attempts=1
+          if [ "${PRS_CREATED}" = "true" ]; then
+            attempts=5
+          fi
+
+          branch=""
+          for attempt in $(seq 1 "${attempts}"); do
+            branch=$(gh api "repos/${REPO}/pulls?state=open&per_page=100" \
+              --jq '[.[] | select(any(.labels[]; .name == "autorelease: pending"))]
+                      | first.head.ref // ""')
+
+            if [ -n "${branch}" ] || [ "${attempt}" -eq "${attempts}" ]; then
+              break
+            fi
+            sleep 3
+          done
 
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
 
-          if [ -z "${branch}" ]; then
-            echo "No open release PR, so there is nothing to publish."
-          else
+          if [ -n "${branch}" ]; then
             echo "Release PR branch: ${branch}"
+          elif [ "${PRS_CREATED}" = "true" ]; then
+            # Skipping quietly here is how a release reaches main with no
+            # Gallery entry, so this fails the run instead.
+            echo "::error::release-please reported a new release PR, but no open PR labelled 'autorelease: pending' is visible."
+            exit 1
+          else
+            echo "No open release PR, so there is nothing to publish."
           fi
 
       - name: Checkout the release branch

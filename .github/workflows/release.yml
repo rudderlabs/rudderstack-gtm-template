@@ -49,11 +49,37 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      # release-please only reports prs_created on the run that actually writes
+      # the release PR. A rerun after a failure further down reports false for
+      # that same still-open PR, which would skip the Gallery entry and leave
+      # the release mergeable without publishing its template. Resolve the open
+      # release PR from its label instead, so the steps below are driven by
+      # whether a release is pending rather than by what this run happened to do.
+      - name: Find the open release PR
+        id: release-pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          branch=$(gh pr list --repo "${REPO}" --state open \
+            --label 'autorelease: pending' --json headRefName \
+            --jq 'first.headRefName // ""')
+
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "${branch}" ]; then
+            echo "No open release PR, so there is nothing to publish."
+          else
+            echo "Release PR branch: ${branch}"
+          fi
+
       - name: Checkout the release branch
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        if: ${{ steps.release-pr.outputs.branch != '' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          ref: ${{ steps.release-pr.outputs.branch }}
           token: ${{ steps.app-token.outputs.token }}
           # The gallery commit is created through the API by the signed-commit
           # step below, so no git credentials need to survive the checkout.
@@ -64,7 +90,7 @@ jobs:
       # yq is not present on the self-hosted runners, so it is fetched at a
       # pinned version and checksum-verified rather than assumed.
       - name: Install yq
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        if: ${{ steps.release-pr.outputs.branch != '' }}
         env:
           YQ_VERSION: v4.53.6
           YQ_SHA256: c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
@@ -82,7 +108,8 @@ jobs:
           yq --version
 
       - name: Add the Gallery entry to the release PR
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        id: gallery
+        if: ${{ steps.release-pr.outputs.branch != '' }}
         env:
           # The main commit this release PR is based on. Its template.tpl is
           # exactly what this release ships, which is what Google reads.
@@ -96,15 +123,23 @@ jobs:
           yq -i '.versions = [{"sha": strenv(SHA), "changeNotes": strenv(NOTE)}]
                    + (.versions | map(select(.changeNotes != strenv(NOTE))))' metadata.yaml
 
-          echo "recorded ${SHA} as ${NOTE}"
+          # A rerun over an entry that is already correct has nothing to commit,
+          # and the signed-commit step below rejects an empty change set.
+          if git diff --quiet -- metadata.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "${SHA} is already recorded as ${NOTE}"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "recorded ${SHA} as ${NOTE}"
+          fi
 
       - name: Create a verified commit on the release PR
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        if: ${{ steps.gallery.outputs.changed == 'true' }}
         uses: ryancyq/github-signed-commit@cb9b21ee83578fe8e26a9eda530015aedf0c7c5b # v1.4.1
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
-          branch-name: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          branch-name: ${{ steps.release-pr.outputs.branch }}
           commit-message: 'chore: publish this release to the gallery'
           files: |
             metadata.yaml

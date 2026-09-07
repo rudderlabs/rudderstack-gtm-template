@@ -1,0 +1,100 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Template harness
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the template harness
+        run: npm test
+
+  metadata:
+    name: Gallery metadata
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # yq is not present on the self-hosted runners, so it is fetched at a
+      # pinned version and checksum-verified rather than assumed.
+      - name: Install yq
+        env:
+          YQ_VERSION: v4.53.6
+          YQ_SHA256: c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+        run: |
+          set -euo pipefail
+          if command -v yq >/dev/null 2>&1; then
+            echo "yq already present: $(yq --version)"
+            exit 0
+          fi
+          curl -fsSL -o /tmp/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
+          chmod +x /tmp/yq
+          sudo mv /tmp/yq /usr/local/bin/yq
+          yq --version
+
+      - name: Every published version must point at a real commit
+        run: |
+          set -euo pipefail
+
+          shas=$(yq -r '.versions[].sha' metadata.yaml)
+
+          if [ -z "${shas}" ]; then
+            echo "metadata.yaml lists no versions" >&2
+            exit 1
+          fi
+
+          failed=0
+          for sha in ${shas}; do
+            if git cat-file -e "${sha}^{commit}" 2>/dev/null; then
+              echo "ok ${sha}"
+            else
+              echo "MISSING ${sha}"
+              failed=1
+            fi
+          done
+
+          if [ "${failed}" -ne 0 ]; then
+            echo "metadata.yaml references commits that do not exist" >&2
+            exit 1
+          fi
+
+          echo "$(printf '%s\n' "${shas}" | wc -l | tr -d ' ') version(s) verified"

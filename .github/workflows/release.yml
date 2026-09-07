@@ -1,0 +1,145 @@
+name: Release
+
+# Merging to main opens or updates a release PR that carries everything the
+# release needs, including the Community Template Gallery entry. Merging that
+# release PR is the publish -- there is no follow-up commit on main.
+#
+# Publishing to the Gallery is exactly that metadata.yaml entry: Google reads
+# the template.tpl found at each listed SHA. The SHA recorded is the main commit
+# the release PR is based on, which already carries the template.tpl being
+# released -- the release PR itself only touches CHANGELOG.md, package.json,
+# .release-please-manifest.json and metadata.yaml.
+#
+# Nothing reaches template users until that entry exists, and even then they are
+# prompted in GTM to accept the update rather than being upgraded silently.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release please
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Generate a token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+          permission-contents: write # to create commits, tags, and releases
+          permission-pull-requests: write # to create and update the release PR
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      # release-please only reports prs_created on the run that actually writes
+      # the release PR. A rerun after a failure further down reports false for
+      # that same still-open PR, which would skip the Gallery entry and leave
+      # the release mergeable without publishing its template. Resolve the open
+      # release PR from its label instead, so the steps below are driven by
+      # whether a release is pending rather than by what this run happened to do.
+      - name: Find the open release PR
+        id: release-pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          branch=$(gh pr list --repo "${REPO}" --state open \
+            --label 'autorelease: pending' --json headRefName \
+            --jq 'first.headRefName // ""')
+
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "${branch}" ]; then
+            echo "No open release PR, so there is nothing to publish."
+          else
+            echo "Release PR branch: ${branch}"
+          fi
+
+      - name: Checkout the release branch
+        if: ${{ steps.release-pr.outputs.branch != '' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release-pr.outputs.branch }}
+          token: ${{ steps.app-token.outputs.token }}
+          # The gallery commit is created through the API by the signed-commit
+          # step below, so no git credentials need to survive the checkout.
+          persist-credentials: false
+
+      # release-please rewrites this branch on every push to main, so an entry
+      # for the pending release is replaced rather than stacked.
+      # yq is not present on the self-hosted runners, so it is fetched at a
+      # pinned version and checksum-verified rather than assumed.
+      - name: Install yq
+        if: ${{ steps.release-pr.outputs.branch != '' }}
+        env:
+          YQ_VERSION: v4.53.6
+          YQ_SHA256: c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+        run: |
+          set -euo pipefail
+          if command -v yq >/dev/null 2>&1; then
+            echo "yq already present: $(yq --version)"
+            exit 0
+          fi
+          curl -fsSL -o /tmp/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c -
+          chmod +x /tmp/yq
+          sudo mv /tmp/yq /usr/local/bin/yq
+          yq --version
+
+      - name: Add the Gallery entry to the release PR
+        id: gallery
+        if: ${{ steps.release-pr.outputs.branch != '' }}
+        env:
+          # The main commit this release PR is based on. Its template.tpl is
+          # exactly what this release ships, which is what Google reads.
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          NOTE="Release $(yq -r '.["."]' .release-please-manifest.json)"
+          export NOTE
+
+          yq -i '.versions = [{"sha": strenv(SHA), "changeNotes": strenv(NOTE)}]
+                   + (.versions | map(select(.changeNotes != strenv(NOTE))))' metadata.yaml
+
+          # A rerun over an entry that is already correct has nothing to commit,
+          # and the signed-commit step below rejects an empty change set.
+          if git diff --quiet -- metadata.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "${SHA} is already recorded as ${NOTE}"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "recorded ${SHA} as ${NOTE}"
+          fi
+
+      - name: Create a verified commit on the release PR
+        if: ${{ steps.gallery.outputs.changed == 'true' }}
+        uses: ryancyq/github-signed-commit@cb9b21ee83578fe8e26a9eda530015aedf0c7c5b # v1.4.1
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        with:
+          branch-name: ${{ steps.release-pr.outputs.branch }}
+          commit-message: 'chore: publish this release to the gallery'
+          files: |
+            metadata.yaml

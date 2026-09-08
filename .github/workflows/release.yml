@@ -170,3 +170,105 @@ jobs:
           commit-message: 'chore: publish this release to the gallery'
           files: |
             metadata.yaml
+
+      - name: Send release notification to Slack
+        id: slack-release-notification
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        continue-on-error: true
+        env:
+          SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          RELEASE_PLEASE_TAG_NAME: ${{ steps.release.outputs.tag_name }}
+          RELEASE_PLEASE_VERSION: ${{ steps.release.outputs.version }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+          ACTOR_URL: ${{ github.server_url }}/${{ github.actor }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SLACK_RELEASE_WEBHOOK_URL}" ]; then
+            echo "::notice::SLACK_RELEASE_WEBHOOK_URL is not configured; skipping Slack release notification."
+            exit 0
+          fi
+
+          version="${RELEASE_PLEASE_VERSION}"
+          if [ -z "${version}" ]; then
+            manifest_json=$(gh api "repos/${REPO}/contents/.release-please-manifest.json?ref=${COMMIT_SHA}" --jq '.content' | base64 -d || true)
+            version=$(printf '%s' "${manifest_json}" | sed -n 's/^[[:space:]]*"\."[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+          fi
+
+          tag_name="${RELEASE_PLEASE_TAG_NAME}"
+          if [ -z "${tag_name}" ] && [ -n "${version}" ]; then
+            tag_name="v${version}"
+          fi
+
+          display_version="${version}"
+          if [ -z "${display_version}" ]; then
+            display_version="${tag_name:-unknown}"
+          elif [ "${display_version#v}" = "${display_version}" ]; then
+            display_version="v${display_version}"
+          fi
+
+          if [ -n "${tag_name}" ]; then
+            release_url="https://github.com/${REPO}/releases/tag/${tag_name}"
+          else
+            release_url="https://github.com/${REPO}/releases"
+          fi
+
+          released_at=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          payload=$(mktemp)
+          cat > "${payload}" <<EOF
+          {
+            "text": "*:rocket: New Release - RudderStack GTM Template - <${release_url}|${display_version}>*",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":rocket: New Release - RudderStack GTM Template"
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*<${release_url}|${display_version}>*\n${released_at}"
+                },
+                "accessory": {
+                  "type": "image",
+                  "image_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+                  "alt_text": "GitHub Icon"
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": ":boom: Published by <${ACTOR_URL}|${ACTOR}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": ":gear: <${GITHUB_RUN_URL}|View workflow run details>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "For more details, check the full release notes <${release_url}|here>."
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+
+          curl -fsS -X POST \
+            -H 'Content-Type: application/json' \
+            --data @"${payload}" \
+            "${SLACK_RELEASE_WEBHOOK_URL}" \
+            >/dev/null
+          rm -f "${payload}"

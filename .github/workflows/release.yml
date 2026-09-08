@@ -26,6 +26,13 @@ jobs:
   release:
     name: Release please
     runs-on: [self-hosted, Linux, X64]
+    # release-please emits the root component's outputs unprefixed, since "." is
+    # the only package in the manifest. Job outputs are strings, so the notify
+    # job below compares releases_created against 'true'.
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      html_url: ${{ steps.release.outputs.html_url }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -170,3 +177,49 @@ jobs:
           commit-message: 'chore: publish this release to the gallery'
           files: |
             metadata.yaml
+
+  # Merging the release PR is the publish, so this announces the release that
+  # run cut. Runs that only open or update the release PR produce no release and
+  # skip this job.
+  notify-slack:
+    name: Notify Slack
+    needs: [release]
+    if: ${{ needs.release.outputs.releases_created == 'true' }}
+    runs-on: [self-hosted, Linux, X64]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Send success message to Slack channel
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          PROJECT_NAME: GTM Template
+        with:
+          channel-id: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "New release: ${{ env.PROJECT_NAME }}"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Release: <${{ needs.release.outputs.html_url }}|${{ needs.release.outputs.tag_name }}>*"
+                  }
+                }
+              ]
+            }

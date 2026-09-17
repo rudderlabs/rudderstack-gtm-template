@@ -26,6 +26,13 @@ jobs:
   release:
     name: Release please
     runs-on: [self-hosted, Linux, X64]
+    # release-please emits the root component's outputs unprefixed, since "." is
+    # the only package in the manifest. Job outputs are strings, so the notify
+    # job below compares releases_created against 'true'.
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      html_url: ${{ steps.release.outputs.html_url }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -170,3 +177,84 @@ jobs:
           commit-message: 'chore: publish this release to the gallery'
           files: |
             metadata.yaml
+
+  # Merging the release PR is the publish, so this announces the release that
+  # run cut. Runs that only open or update the release PR produce no release and
+  # skip this job.
+  notify-slack:
+    name: Notify Slack
+    needs: [release]
+    if: ${{ needs.release.outputs.releases_created == 'true' }}
+    runs-on: [self-hosted, Linux, X64]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout the released tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+          persist-credentials: false
+
+      # The release tag points at the release PR's merge commit, but the Gallery
+      # serves the commit recorded in metadata.yaml -- the main commit that PR
+      # was based on, which is the one carrying the template.tpl being released.
+      # Read it back from the tag so the announcement names the commit that
+      # actually ships. An entry that cannot be read fails the step rather than
+      # posting a broken link, since `set -o pipefail` catches the empty grep.
+      - name: Read the published Gallery commit
+        id: gallery
+        run: |
+          set -euo pipefail
+          sha=$(grep -m1 -E '^[[:space:]]*-[[:space:]]*sha:' metadata.yaml | tr -d '"' | awk '{print $3}')
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${sha:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Send success message to Slack channel
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        env:
+          PROJECT_NAME: Google Tag Manager (GTM) Template
+          GALLERY_URL: 'https://tagmanager.google.com/gallery/#/owners/rudderlabs/templates/rudderstack-gtm-template'
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ steps.gallery.outputs.sha }}
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          # Surface a rejected post as a failed job instead of a green run that
+          # notified nobody.
+          errors: true
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_RELEASE_CHANNEL_ID }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "New release: ${{ env.PROJECT_NAME }}"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Release: <${{ needs.release.outputs.html_url }}|${{ needs.release.outputs.tag_name }}>*\n*Gallery: <${{ env.GALLERY_URL }}|rudderstack-gtm-template>*"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "The Gallery publishes <${{ env.COMMIT_URL }}|${{ steps.gallery.outputs.short_sha }}>, the commit recorded in `metadata.yaml`, rather than the merge commit the tag points at. It serves the new version within two to three days, and template users are prompted in GTM to accept the update."
+                    }
+                  ]
+                }
+              ]
+            }

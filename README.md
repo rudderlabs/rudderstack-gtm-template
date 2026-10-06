@@ -35,6 +35,7 @@ Released under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-
 - [Installing the SDK](#installing-the-sdk)
   - [Method 1 — a load tag from this template](#method-1--a-load-tag-from-this-template)
   - [Method 2 — Custom HTML tag](#method-2--custom-html-tag)
+  - [Method 3 — the SDK is bundled into your app](#method-3--the-sdk-is-bundled-into-your-app)
 - [Sending events](#sending-events)
 - [Verifying your setup](#verifying-your-setup)
 - [Requirements](#requirements)
@@ -144,6 +145,35 @@ a GTM variable. It is also the only option until the loader artifact above ships
 
 3. Set its trigger to **Initialization - All Pages**. Not `All Pages`. See the note above.
 4. Leave **Support document.write()** unchecked.
+
+### Method 3 — the SDK is bundled into your app
+
+Use this when your app installs
+[`@rudderstack/analytics-js`](https://www.npmjs.com/package/@rudderstack/analytics-js)
+from npm and calls `load()` itself — for example to use GTM device-mode destinations
+alongside it.
+
+A bundled SDK only sets `window.rudderanalytics` when your app code runs `new
+RudderAnalytics()`, which is usually after hydration and well after GTM has fired its
+Initialization and Page View tags. Those tags find no global and fail with
+`the "rudderanalytics" global was not found on this page`.
+
+Create the pre-load buffer yourself, in an inline script in `<head>` placed **before** the
+GTM container snippet:
+
+```html
+<script>
+  window.rudderanalytics = window.rudderanalytics || [];
+</script>
+```
+
+Tags that fire before your app starts then push onto the buffer, and the SDK replays it
+when it is constructed and `load()` is called. The script has to be inline and synchronous:
+a deferred or framework-injected script (Next.js `afterInteractive`, Gatsby
+`onClientEntry`) runs too late. The
+[Vite example](https://github.com/rudderlabs/rudder-sdk-js/blob/develop/examples/reactjs/vite/sample-app/index.html)
+in the SDK repository shows a fuller version that also adds method stubs, so
+`window.rudderanalytics.track(...)` can be called from your own code before the SDK loads.
 
 ## Sending events
 
@@ -264,7 +294,7 @@ dispatch a call:
 
 | Console message | Cause | Fix |
 | --- | --- | --- |
-| `the "rudderanalytics" global was not found on this page` | The SDK is not on the page yet when this tag fires. | Move the SDK tag to an **Initialization - All Pages** trigger. |
+| `the "rudderanalytics" global was not found on this page` | The SDK is not on the page yet when this tag fires. | Move the SDK tag to an **Initialization - All Pages** trigger. If your app bundles the SDK from npm, create the pre-load buffer in `<head>` — see [Method 3](#method-3--the-sdk-is-bundled-into-your-app). |
 | `unsupported Call value` | The **Call** field is empty or holds a value this template does not implement. | Pick a value from the dropdown. |
 | `Event is required for the track call` | The **Event** field resolved to empty — often a GTM variable that returned nothing. | Check the variable in Preview. |
 | `Object and Action are both required` | **Use object action** is `True` but one of them is empty. | Fill both, or set **Use object action** to `False`. |

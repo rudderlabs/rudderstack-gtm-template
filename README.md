@@ -158,22 +158,12 @@ RudderAnalytics()`, which is usually after hydration and well after GTM has fire
 Initialization and Page View tags. Those tags find no global and fail with
 `the "rudderanalytics" global was not found on this page`.
 
-Create the pre-load buffer yourself, in an inline script in `<head>` placed **before** the
-GTM container snippet:
-
-```html
-<script>
-  window.rudderanalytics = window.rudderanalytics || [];
-</script>
-```
-
-Tags that fire before your app starts then push onto the buffer, and the SDK replays it
-when it is constructed and `load()` is called. The script has to be inline and synchronous:
-a deferred or framework-injected script (Next.js `afterInteractive`, Gatsby
-`onClientEntry`) runs too late. The
-[Vite example](https://github.com/rudderlabs/rudder-sdk-js/blob/develop/examples/reactjs/vite/sample-app/index.html)
-in the SDK repository shows a fuller version that also adds method stubs, so
-`window.rudderanalytics.track(...)` can be called from your own code before the SDK loads.
+Set up the SDK's pre-load buffer in `<head>`, before the GTM container snippet, the way the
+SDK's sample apps do — for example the
+[Vite](https://github.com/rudderlabs/rudder-sdk-js/blob/develop/examples/reactjs/vite/sample-app/index.html)
+and [Next.js](https://github.com/rudderlabs/rudder-sdk-js/blob/develop/examples/nextjs/hooks/sample-app/src/app/layout.tsx)
+apps. Tags that fire before your app starts then push onto the buffer, and the SDK replays
+it when it is constructed and `load()` is called.
 
 ## Sending events
 

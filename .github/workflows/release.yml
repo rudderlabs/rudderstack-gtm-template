@@ -25,7 +25,7 @@ permissions:
 jobs:
   release:
     name: Release please
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: arc-amd64
     # release-please emits the root component's outputs unprefixed, since "." is
     # the only package in the manifest. Job outputs are strings, so the notify
     # job below compares releases_created against 'true'.
@@ -185,7 +185,7 @@ jobs:
     name: Notify Slack
     needs: [release]
     if: ${{ needs.release.outputs.releases_created == 'true' }}
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: arc-amd64
     permissions:
       contents: read
     steps:
